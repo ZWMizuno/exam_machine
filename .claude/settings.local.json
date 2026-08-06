@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(python e:\\\\MyProjects\\\\exam_machine\\\\_extract_doc.py)",
+      "PowerShell(python e:\\\\MyProjects\\\\exam_machine\\\\_extract_doc.py 2>&1)",
+      "WebFetch(domain:unpkg.com)",
+      "WebSearch",
+      "Read(//e/MyProjects/exam_machine/**)",
+      "Bash(node -e \"try { require\\('./js/pages/t4-wrongbook.js'\\) } catch\\(e\\) { console.log\\(e.message\\) }\")",
+      "Bash(grep -n \"render\\\\|async render\\\\|}\\\\s*$\" js/pages/t4-wrongbook.js)",
+      "WebFetch(domain:minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com)",
+      "Bash(python2 -c ' *)",
+      "Bash(python -c ' *)",
+      "Bash(python -)",
+      "Bash(curl -s -o \"e:/Myprojects/exam_machine/bookmark_ref.png\" \"https://minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com/ccv2%2F2026-08-06%2FMiniMax-M2.7%2F2044683222213726727%2F7ef05f3ff48f51ae669fb288a1e8ef1e79c05b9a0bbe910cec5ccf5605ef47ab..png?Expires=1786115929&OSSAccessKeyId=LTAI5tGLnRTkBjLuYPjNcKQ8&Signature=z0qVIo5CgWomm2N%2B9yk%2FkcNMuw0%3D\")",
+      "Bash(ls -la /e/Myprojects/exam_machine/css/style.css 2>/dev/null || ls -la \"e:/Myprojects/exam_machine/css/style.css\" 2>/dev/null || echo \"trying different paths\" && ls /e/ 2>/dev/null | head -5)",
+      "Read(//e//**)",
+      "Bash(mkdir -p css && echo \"dir created\")",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ],
+    "additionalDirectories": [
+      "E:\\Myprojects\\exam_machine"
+    ]
+  }
+}

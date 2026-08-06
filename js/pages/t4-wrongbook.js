@@ -1,0 +1,777 @@
+// === T4 Wrong Question Book: Grid + Detail + Review ===
+
+// 12 color schemes: 书本logo, 文字, 书签, 书本
+const BOOK_COLOR_SCHEMES = [
+  { logo: '#B0F962', text: '#D1D4DB', bookmark: '#FF7733', book: '#23262B' },
+  { logo: '#E8672D', text: '#FEDA9E', bookmark: '#772823', book: '#242424' },
+  { logo: '#206F50', text: '#F5EAD6', bookmark: '#E49D69', book: '#1B1B1B' },
+  { logo: '#9FE7E6', text: '#E8FBFF', bookmark: '#156B8C', book: '#052228' },
+  { logo: '#64A1C0', text: '#E7D2BF', bookmark: '#FF6357', book: '#2E2E2E' },
+  { logo: '#926858', text: '#FFDCA3', bookmark: '#C97F59', book: '#29221C' },
+  { logo: '#23A8A7', text: '#F46A6A', bookmark: '#053154', book: '#181818' },
+  { logo: '#FF6054', text: '#FFDCAC', bookmark: '#5B889F', book: '#292929' },
+  { logo: '#5F8CA1', text: '#FFF0E0', bookmark: '#E7D2C1', book: '#303030' },
+  { logo: '#278FC8', text: '#F9B6BB', bookmark: '#1D5290', book: '#1F1F1F' },
+  { logo: '#4273AD', text: '#D7D8D0', bookmark: '#435674', book: '#002329' },
+  { logo: '#FCC96E', text: '#2E9C91', bookmark: '#136058', book: '#132432' },
+  { logo: '#053154', text: '#FFFFFF', bookmark: '#5A5750', book: '#F05654' },
+  { logo: '#C7371D', text: '#FCDC93', bookmark: '#185A56', book: '#4D262B' },
+  { logo: '#0B908F', text: '#CB8B2A', bookmark: '#753914', book: '#052228' },
+  { logo: '#F05654', text: '#D9AE84', bookmark: '#C0732F', book: '#200E02' },
+  { logo: '#D5BD7D', text: '#EFAE1E', bookmark: '#ADA37F', book: '#000000' },
+  { logo: '#D1A1BA', text: '#A6D4D6', bookmark: '#024B5E', book: '#841C3C' },
+  { logo: '#EC9B7A', text: '#F8C761', bookmark: '#203822', book: '#595182' },
+  { logo: '#A92A01', text: '#3E5626', bookmark: '#F4D376', book: '#F3CDA8' },
+  { logo: '#9B8037', text: '#9C2C21', bookmark: '#E4B0B7', book: '#FEC1AE' },
+  { logo: '#3A4B5B', text: '#061B3A', bookmark: '#F3CDA8', book: '#97D4F1' },
+  { logo: '#B9502B', text: '#8D2922', bookmark: '#FFA279', book: '#FFC5CD' },
+  { logo: '#145750', text: '#FCC96E', bookmark: '#212F3A', book: '#2D8A80' },
+  { logo: '#9B8BA6', text: '#E3B0B7', bookmark: '#2A1943', book: '#881C3C' },
+  { logo: '#A85253', text: '#1C2C58', bookmark: '#CB7761', book: '#FFC4C2' },
+  { logo: '#624235', text: '#F4D360', bookmark: '#4A010A', book: '#302521' },
+];
+
+const BOOKS_PER_PAGE = 8; // 2×4 grid
+
+function getBookmarkTextColor(bookmarkHex) {
+  const r = parseInt(bookmarkHex.slice(1, 3), 16);
+  const g = parseInt(bookmarkHex.slice(3, 5), 16);
+  const b = parseInt(bookmarkHex.slice(5, 7), 16);
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.6 ? '#1a1a1a' : '#ffffff';
+}
+
+let t4ReviewEngine = null;
+let t4DetailAllQuestions = [];
+let t4DetailQuestionsByType = {};
+let t4DetailCurrentIndex = 0;
+let t4DetailCollapsedTypes = {};
+
+const _t4WrongbookPage = {
+  async render(container, params) {
+    const hash = location.hash.slice(1);
+    const hashPath = hash.split('?')[0];
+    if (hashPath.startsWith('/t4/') && hashPath.endsWith('/review')) {
+      await this.renderReview(container, params);
+    } else if (params.bankId) {
+      await this.renderDetail(container, params);
+    } else {
+      await this.renderGrid(container);
+    }
+  },
+
+  async renderGrid(container) {
+    const user = getCurrentUser();
+    const books = await getDistinctWrongBanks(user.id);
+
+    if (books.length === 0) {
+      container.innerHTML = '<div class="empty-state"><i class="bi bi-book"></i><p>暂无错题，去考试或练习吧！</p><a href="#/t1" class="btn btn-primary">去考试/练习</a></div>';
+      return;
+    }
+
+    const totalPages = Math.ceil(books.length / BOOKS_PER_PAGE);
+    var currentPage = this._bookGridPage || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    this._bookGridPage = currentPage;
+
+    var start = (currentPage - 1) * BOOKS_PER_PAGE;
+    var pageBooks = books.slice(start, start + BOOKS_PER_PAGE);
+    var self = this;
+
+    function renderBookCards() {
+      var html = '';
+      for (var i = 0; i < pageBooks.length; i++) {
+        var b = pageBooks[i];
+        var scheme = BOOK_COLOR_SCHEMES[b.colorIndex != null ? b.colorIndex : (start + i) % BOOK_COLOR_SCHEMES.length];
+        var bmText = getBookmarkTextColor(scheme.bookmark);
+        html += '<div class="book-wrapper" onclick="location.hash=\'#/t4/' + b.bankId + '\'">' +
+          '<div class="book-card" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + bmText + '">' +
+            '<div class="book-logo"><i class="bi bi-book-fill"></i></div>' +
+            '<div class="book-body">' +
+              '<div class="book-name">' + escapeHtml(b.bankName) + '</div>' +
+              '<div class="book-count">' + b.count + ' 道错题</div>' +
+            '</div>' +
+            '<div class="book-bookmark"></div>' +
+          '</div>' +
+          '<div class="book-shelf"></div>' +
+        '</div>';
+      }
+      document.getElementById('t4BookGrid').innerHTML = html;
+
+      var pagEl = document.getElementById('t4BookPagination');
+      if (totalPages > 1) {
+        pagEl.innerHTML = '<button class="btn btn-sm btn-outline-secondary"' + (currentPage <= 1 ? ' disabled' : '') + ' onclick="_t4WrongbookPage.goBookPage(' + (currentPage - 1) + ')"><i class="bi bi-chevron-left"></i></button>' +
+          '<span class="mx-2 text-muted small">' + currentPage + ' / ' + totalPages + '</span>' +
+          '<button class="btn btn-sm btn-outline-secondary"' + (currentPage >= totalPages ? ' disabled' : '') + ' onclick="_t4WrongbookPage.goBookPage(' + (currentPage + 1) + ')"><i class="bi bi-chevron-right"></i></button>';
+      } else {
+        pagEl.innerHTML = '';
+      }
+    }
+
+    container.innerHTML = '<h4 class="mb-4"><i class="bi bi-book me-2"></i>错题集</h4>' +
+      '<div class="book-grid" id="t4BookGrid"></div>' +
+      '<div class="text-center mt-3" id="t4BookPagination"></div>';
+
+    renderBookCards();
+  },
+
+  goBookPage(page) {
+    this._bookGridPage = page;
+    this.renderGrid(document.getElementById('content'));
+  },
+
+  async renderDetail(container, params) {
+    const bankId = parseInt(params.bankId);
+    const bank = await getBankById(bankId);
+    if (!bank) { showToast('题库不存在', 'error'); location.hash = '#/t4'; return; }
+    setState({ _bankName: bank.name });
+
+    const user = getCurrentUser();
+    const wrongQs = await getWrongQuestionsByUserAndBank(user.id, bankId);
+
+    // Sort by type order then by number
+    const typeOrder = { single: 0, multi: 1, tf: 2, fill: 3, essay: 4 };
+    wrongQs.sort((a, b) => {
+      const ta = typeOrder[a.type] ?? 99;
+      const tb = typeOrder[b.type] ?? 99;
+      if (ta !== tb) return ta - tb;
+      return (a.number || 0) - (b.number || 0);
+    });
+
+    // Build questions by type for sidebar
+    t4DetailAllQuestions = wrongQs;
+    t4DetailQuestionsByType = {};
+    for (const t of QUESTION_TYPES) {
+      t4DetailQuestionsByType[t] = wrongQs.filter(q => q.type === t);
+    }
+    t4DetailCurrentIndex = 0;
+
+    container.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">
+          <a href="#/t4" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
+          《${escapeHtml(bank.name)}》错题本
+        </h4>
+        <div>
+          <span class="text-muted me-3" id="t4DetailCount">共 ${wrongQs.length} 道错题</span>
+          <button class="btn btn-primary" onclick="t4OpenReviewModal(${bankId})"><i class="bi bi-lightbulb me-1"></i>错题扫盲</button>
+        </div>
+      </div>
+      <div class="exam-layout">
+        <div class="exam-sidebar-col">
+          <div class="exam-sidebar" id="t4DetailSidebar"></div>
+        </div>
+        <div class="exam-main-col">
+          <div class="exam-main-scroll">
+            <div class="question-area" id="t4DetailMain"></div>
+          </div>
+        </div>
+      </div>`;
+
+    this.renderT4DetailSidebar(document.getElementById('t4DetailSidebar'));
+    this.showT4DetailQuestion();
+
+    // Keyboard navigation
+    this._t4KeyHandler = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (t4DetailCurrentIndex > 0) {
+          t4DetailCurrentIndex--;
+          _t4WrongbookPage.showT4DetailQuestion();
+          const sb = document.getElementById('t4DetailSidebar');
+          if (sb) _t4WrongbookPage.renderT4DetailSidebar(sb);
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (t4DetailCurrentIndex < t4DetailAllQuestions.length - 1) {
+          t4DetailCurrentIndex++;
+          _t4WrongbookPage.showT4DetailQuestion();
+          const sb = document.getElementById('t4DetailSidebar');
+          if (sb) _t4WrongbookPage.renderT4DetailSidebar(sb);
+        }
+      }
+    };
+    document.addEventListener('keydown', this._t4KeyHandler);
+  },
+
+  // Show one question at a time, with prev/next navigation
+  showT4DetailQuestion() {
+    const area = document.getElementById('t4DetailMain');
+    if (!area) return;
+
+    const total = t4DetailAllQuestions.length;
+    if (total === 0) {
+      area.innerHTML = '<div class="text-center text-muted py-4">暂无错题</div>';
+      const sidebar = document.getElementById('t4DetailSidebar');
+      if (sidebar) sidebar.innerHTML = '';
+      const countEl = document.getElementById('t4DetailCount');
+      if (countEl) countEl.textContent = '共 0 道错题';
+      return;
+    }
+
+    // Clamp index
+    if (t4DetailCurrentIndex >= total) t4DetailCurrentIndex = total - 1;
+    if (t4DetailCurrentIndex < 0) t4DetailCurrentIndex = 0;
+
+    const wq = t4DetailAllQuestions[t4DetailCurrentIndex];
+    const isFirst = t4DetailCurrentIndex === 0;
+    const isLast = t4DetailCurrentIndex === total - 1;
+
+    area.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted">${t4DetailCurrentIndex + 1} / ${total}</span>
+        <button class="btn btn-sm btn-outline-danger btn-icon" id="t4DetailDeleteBtn" title="从错题本移除"><i class="bi bi-trash"></i></button>
+      </div>
+      ${renderQuestion({
+        id: wq.id,
+        questionId: wq.questionId,
+        type: wq.type,
+        number: wq.number,
+        content: wq.content,
+        options: wq.options,
+        answer: wq.answer,
+        fillBlankCount: wq.fillBlankCount,
+      }, {
+        showAnswer: true,
+        readOnly: true,
+        wrongCount: wq.wrongCount,
+        showDelete: false,
+        correctStreak: -1,
+        sessionNumber: wq.number,
+      })}
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        ${isFirst ? '<span></span>' : '<button class="btn btn-outline-primary" id="t4DetailPrevBtn"><i class="bi bi-chevron-left"></i> 上一题</button>'}
+        <span class="text-muted small">${t4DetailCurrentIndex + 1} / ${total}</span>
+        ${isLast ? '<span></span>' : '<button class="btn btn-outline-primary" id="t4DetailNextBtn">下一题 <i class="bi bi-chevron-right"></i></button>'}
+      </div>
+      <div class="text-center text-muted mt-2" style="font-size:0.8rem"><i class="bi bi-keyboard me-1"></i>键盘 ← → 键可切换题目</div>`;
+
+    // Delete handler
+    const delBtn = document.getElementById('t4DetailDeleteBtn');
+    if (delBtn) {
+      delBtn.addEventListener('click', async () => {
+        const wqId = wq.id;
+        await deleteWrongQuestion(wqId);
+
+        // Remove from data arrays
+        const arrIdx = t4DetailAllQuestions.findIndex(q => q.id === wqId);
+        if (arrIdx >= 0) {
+          const removed = t4DetailAllQuestions[arrIdx];
+          t4DetailAllQuestions.splice(arrIdx, 1);
+          t4DetailQuestionsByType[removed.type] = (t4DetailQuestionsByType[removed.type] || []).filter(q => q.id !== wqId);
+        }
+
+        // Adjust index: if last item was removed, go to previous
+        if (t4DetailCurrentIndex >= t4DetailAllQuestions.length && t4DetailAllQuestions.length > 0) {
+          t4DetailCurrentIndex = t4DetailAllQuestions.length - 1;
+        }
+
+        // Update count
+        const countEl = document.getElementById('t4DetailCount');
+        if (countEl) countEl.textContent = `共 ${t4DetailAllQuestions.length} 道错题`;
+
+        // Re-render sidebar and current question
+        const sidebar = document.getElementById('t4DetailSidebar');
+        if (sidebar) _t4WrongbookPage.renderT4DetailSidebar(sidebar);
+        _t4WrongbookPage.showT4DetailQuestion();
+
+        showToast('已从错题本移除', 'success');
+      });
+    }
+
+    // Prev/next buttons
+    const prevBtn = document.getElementById('t4DetailPrevBtn');
+    const nextBtn = document.getElementById('t4DetailNextBtn');
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (t4DetailCurrentIndex > 0) {
+          t4DetailCurrentIndex--;
+          _t4WrongbookPage.showT4DetailQuestion();
+          // Update sidebar highlight
+          const sidebar = document.getElementById('t4DetailSidebar');
+          if (sidebar) _t4WrongbookPage.renderT4DetailSidebar(sidebar);
+        }
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (t4DetailCurrentIndex < t4DetailAllQuestions.length - 1) {
+          t4DetailCurrentIndex++;
+          _t4WrongbookPage.showT4DetailQuestion();
+          // Update sidebar highlight
+          const sidebar = document.getElementById('t4DetailSidebar');
+          if (sidebar) _t4WrongbookPage.renderT4DetailSidebar(sidebar);
+        }
+      });
+    }
+
+    // Update sidebar highlight
+    const sidebar = document.getElementById('t4DetailSidebar');
+    if (sidebar) _t4WrongbookPage.renderT4DetailSidebar(sidebar);
+  },
+
+  // Render sidebar with type-grouped question circles for quick navigation
+  renderT4DetailSidebar(container) {
+    if (!container) return;
+
+    const questionsByType = t4DetailQuestionsByType;
+    const totalQuestions = t4DetailAllQuestions.length;
+    if (totalQuestions === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    const currentWq = t4DetailAllQuestions[t4DetailCurrentIndex];
+    const currentQid = currentWq ? currentWq.questionId : null;
+
+    // Auto-expand the type section containing the current question
+    if (currentWq) {
+      delete t4DetailCollapsedTypes[currentWq.type];
+    }
+
+    let html = '<h6 class="mb-3">错题导航</h6>';
+
+    for (const [qtype, questions] of Object.entries(questionsByType)) {
+      if (!questions || questions.length === 0) continue;
+      const collapsed = t4DetailCollapsedTypes[qtype] ? ' collapsed' : '';
+      html += `<div class="type-section${collapsed}">
+        <div class="type-header" data-toggle-type="${qtype}">
+          <span>${TYPE_LABELS_SHORT[qtype]} (${questions.length})</span>
+          <i class="bi bi-chevron-down"></i>
+        </div>
+        <div class="type-body">
+          ${questions.map(q => {
+            let cssClass = 'question-circle';
+            if (q.questionId === currentQid) cssClass += ' current';
+            return `<div class="${cssClass}" data-qid="${q.questionId}" title="#${q.number} — 错误${q.wrongCount}次">${q.number}</div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
+
+    container.innerHTML = html;
+
+    // Circle click handlers — navigate to the clicked question
+    container.querySelectorAll('.question-circle').forEach(circle => {
+      circle.addEventListener('click', () => {
+        const qid = parseInt(circle.dataset.qid);
+        const idx = t4DetailAllQuestions.findIndex(q => q.questionId === qid);
+        if (idx >= 0) {
+          t4DetailCurrentIndex = idx;
+          _t4WrongbookPage.renderT4DetailSidebar(container);
+          _t4WrongbookPage.showT4DetailQuestion();
+        }
+      });
+    });
+
+    // Collapse/expand type sections
+    container.querySelectorAll('.type-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const section = header.parentElement;
+        section.classList.toggle('collapsed');
+        const qtype = header.dataset.toggleType;
+        t4DetailCollapsedTypes[qtype] = section.classList.contains('collapsed');
+      });
+    });
+  },
+
+  async renderReview(container, params) {
+    const bankId = parseInt(params.bankId);
+    const bank = await getBankById(bankId);
+    setState({ _bankName: bank ? bank.name : '题库' });
+
+    const user = getCurrentUser();
+    // Get types from router-provided query params (if coming from modal)
+    const typeParam = (params._query && params._query.types) || '';
+
+    let selectedTypes;
+    if (typeParam) {
+      selectedTypes = typeParam.split(',');
+    } else {
+      // Fallback: all types present
+      const allWQs = await getWrongQuestionsByUserAndBank(user.id, bankId);
+      selectedTypes = [...new Set(allWQs.map(w => w.type))];
+    }
+
+    // Fetch wrong questions for selected types
+    let allWQs = await getWrongQuestionsByUserAndBank(user.id, bankId);
+    allWQs = allWQs.filter(w => selectedTypes.includes(w.type));
+
+    if (allWQs.length === 0) {
+      showToast('没有可扫盲的错题', 'warning');
+      location.hash = `#/t4/${bankId}`;
+      return;
+    }
+
+    // Initialize review engine with current index for one-at-a-time mode
+    t4ReviewEngine = {
+      pool: shuffle(allWQs),
+      group: [],
+      groupIndex: 0,
+      cleared: 0,
+      showingResult: false  // whether we're showing answer feedback
+    };
+    // Fill initial 5 into group
+    t4ReviewEngine.group = t4ReviewEngine.pool.splice(0, Math.min(5, t4ReviewEngine.pool.length));
+    // Make sure all questions have correctStreak initialized
+    for (const wq of t4ReviewEngine.group) {
+      if (wq.correctStreak === undefined) wq.correctStreak = 0;
+    }
+
+    await this.renderReviewUI(container, bankId);
+  },
+
+  async renderReviewUI(container, bankId) {
+    const engine = t4ReviewEngine;
+    const totalRemaining = engine.group.length + engine.pool.length;
+
+    container.innerHTML = `
+      <h4 class="mb-3">
+        <a href="#/t4/${bankId}" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
+        错题扫盲
+      </h4>
+
+      <div class="d-flex align-items-center gap-3 mb-3" id="t4StatusBar">
+        <span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>已清除 ${engine.cleared} 题</span>
+        <span class="badge bg-secondary fs-6"><i class="bi bi-hourglass-split me-1"></i>剩余 ${totalRemaining} 题</span>
+      </div>
+
+      <div id="t4ReviewArea"></div>
+
+      <div class="d-flex justify-content-between mt-3">
+        <a href="#/t4/${bankId}" class="btn btn-outline-danger"><i class="bi bi-box-arrow-left me-1"></i>退出扫盲</a>
+      </div>`;
+
+    this.renderCurrentQuestion();
+  },
+
+  // Update the status bar with cleared/remaining counts
+  updateReviewStatusBar() {
+    const engine = t4ReviewEngine;
+    if (!engine) return;
+    const totalRemaining = engine.group.length + engine.pool.length;
+    const el = document.getElementById('t4StatusBar');
+    if (el) {
+      el.innerHTML = `
+        <span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>已清除 ${engine.cleared} 题</span>
+        <span class="badge bg-secondary fs-6"><i class="bi bi-hourglass-split me-1"></i>剩余 ${totalRemaining} 题</span>`;
+    }
+  },
+
+  renderCurrentQuestion() {
+    const engine = t4ReviewEngine;
+    const area = document.getElementById('t4ReviewArea');
+    if (!area) return;
+
+    // Check if all done
+    if (!engine || engine.group.length === 0) {
+      area.innerHTML = `<div class="text-center py-5">
+        <i class="bi bi-emoji-smile fs-1 text-success"></i>
+        <h5 class="mt-2">扫盲完成！</h5>
+        <p class="text-muted">共清除了 ${engine ? engine.cleared : 0} 道错题</p>
+        <a href="#/t4/${location.hash.split('/')[2]}" class="btn btn-primary">返回错题本</a>
+      </div>`;
+      // Update status bar to show final result
+      const statusEl = document.getElementById('t4StatusBar');
+      if (statusEl) {
+        statusEl.innerHTML = `<span class="badge bg-success fs-6"><i class="bi bi-trophy me-1"></i>共清除 ${engine ? engine.cleared : 0} 题</span>`;
+      }
+      return;
+    }
+
+    const wq = engine.group[engine.groupIndex];
+    const idx = engine.groupIndex;
+    const isResult = engine.showingResult;
+
+    let answerHtml = '';
+    if (isResult) {
+      // Show result: correct answer highlighted, user selection shown
+      const userAnswer = engine._lastUserAnswer;
+      const isCorrect = engine._lastCorrect;
+      const correctAnswer = wq.answer;
+      const type = wq.type;
+
+      // Build result display
+      answerHtml += `<div class="alert ${isCorrect ? 'alert-success' : 'alert-danger'} py-2 text-center">${isCorrect ? '<i class="bi bi-check-circle me-1"></i>回答正确！' : '<i class="bi bi-x-circle me-1"></i>回答错误'}</div>`;
+
+      if (!isCorrect) {
+        answerHtml += `<div class="p-2 rounded mb-2" style="background:#e6f9f3;color:#0d6b3c;"><strong>正确答案：</strong>${formatCorrectAnswer(correctAnswer, type)}</div>`;
+      }
+
+      // Show selected options (read-only)
+      answerHtml += this.renderReviewAnswerInput(wq, idx, true, isCorrect, correctAnswer);
+
+      answerHtml += `<div class="text-center mt-3">
+        <button class="btn btn-primary btn-lg" onclick="t4NextQuestion()">下一题 <i class="bi bi-arrow-right"></i></button>
+      </div>`;
+    } else {
+      // Interactive answer input
+      answerHtml += this.renderReviewAnswerInput(wq, idx, false, false, null);
+      answerHtml += `<div class="text-center mt-3">
+        <button class="btn btn-success btn-lg" id="t4SubmitBtn" onclick="t4SubmitAnswer()"><i class="bi bi-check-lg me-1"></i>提交答案</button>
+      </div>`;
+    }
+
+    area.innerHTML = `
+      <div class="card">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              ${typeBadge(wq.type)}
+              <span class="badge bg-warning text-dark ms-1">错误 ${wq.wrongCount} 次</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <div class="streak-lights">
+                <div class="streak-light ${wq.correctStreak >= 1 ? 'lit' : ''}"></div>
+                <div class="streak-light ${wq.correctStreak >= 2 ? 'lit' : ''}"></div>
+                <div class="streak-light ${wq.correctStreak >= 3 ? 'lit' : ''}"></div>
+              </div>
+              <button class="btn btn-sm btn-outline-danger btn-icon" onclick="t4SkipQuestion(${idx})" title="暂时跳过"><i class="bi bi-skip-forward"></i></button>
+            </div>
+          </div>
+          <div class="question-content mb-3 fs-5">${escapeHtml(wq.content)}</div>
+          ${answerHtml}
+        </div>
+      </div>`;
+
+    // Bind option selection handlers (only in answer mode, not result mode)
+    if (!isResult) {
+      const type = wq.type;
+      if (type === 'single' || type === 'tf') {
+        area.querySelectorAll('.option-item').forEach(item => {
+          item.addEventListener('click', () => {
+            area.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+            item.classList.add('selected');
+          });
+        });
+      } else if (type === 'multi') {
+        area.querySelectorAll('.option-item').forEach(item => {
+          item.addEventListener('click', () => {
+            item.classList.toggle('selected');
+          });
+        });
+      }
+    }
+  },
+
+  renderReviewAnswerInput(wq, idx, readOnly, isCorrect, correctAnswer) {
+    const type = wq.type;
+    switch (type) {
+      case 'single': {
+        const opts = wq.options || {};
+        const labels = Object.keys(opts).sort();
+        return `<ul class="options-list">${labels.map(l => {
+          let itemClass = 'option-item';
+          if (readOnly) itemClass += ' no-hover';
+          if (readOnly && l === correctAnswer) itemClass += ' correct';
+          if (readOnly && isCorrect === false) {
+            const ua = t4ReviewEngine._lastUserAnswer;
+            if (l === ua) itemClass += ' wrong';
+          }
+          return `<li class="${itemClass}" data-value="${l}"><span class="option-letter">${l}</span><span>${escapeHtml(opts[l])}</span></li>`;
+        }).join('')}</ul>`;
+      }
+      case 'tf': {
+        // Show ✓/✗ instead of true/false; fixed order: 正确 first, 错误 second
+        const opts = { 'true': '正确', 'false': '错误' };
+        const labels = ['true', 'false'];
+        return `<ul class="options-list">${labels.map(l => {
+          let itemClass = 'option-item';
+          if (readOnly) itemClass += ' no-hover';
+          if (readOnly && l === correctAnswer) itemClass += ' correct';
+          if (readOnly && isCorrect === false) {
+            const ua = t4ReviewEngine._lastUserAnswer;
+            if (l === ua) itemClass += ' wrong';
+          }
+          return `<li class="${itemClass}" data-value="${l}"><span class="option-letter">${l === 'true' ? '✓' : '✗'}</span><span>${opts[l]}</span></li>`;
+        }).join('')}</ul>`;
+      }
+      case 'multi': {
+        const opts = wq.options || {};
+        const labels = Object.keys(opts).sort();
+        const uaSet = new Set(t4ReviewEngine._lastUserAnswer || '');
+        const caSet = new Set(correctAnswer || '');
+        return `<ul class="options-list" data-multi="true">${labels.map(l => {
+          let itemClass = 'option-item';
+          if (readOnly) itemClass += ' no-hover';
+          if (readOnly && caSet.has(l)) itemClass += ' correct';
+          if (readOnly && !isCorrect && uaSet.has(l) && !caSet.has(l)) itemClass += ' wrong';
+          return `<li class="${itemClass}" data-value="${l}"><span class="option-letter">${l}</span><span>${escapeHtml(opts[l])}</span></li>`;
+        }).join('')}</ul>`;
+      }
+      case 'fill': {
+        const blanks = wq.answer || [];
+        const ua = t4ReviewEngine._lastUserAnswer || [];
+        return blanks.map((ans, i) => {
+          if (readOnly) {
+            const correct = isCorrect === true || (Array.isArray(isCorrect) && isCorrect[i]);
+            const cls = correct ? 'text-success' : 'text-danger';
+            return `<div class="mb-1"><label class="form-label small fw-bold">第${i+1}空</label>
+              <div><span class="${cls}">你的答案：${escapeHtml(ua[i] || '(未作答)')}</span></div>
+              ${!correct ? `<div class="text-success">正确答案：${escapeHtml(ans)}</div>` : ''}
+            </div>`;
+          }
+          return `<div class="mb-1"><label class="form-label small fw-bold">第${i+1}空</label><input type="text" class="form-control form-control-sm review-input" data-blank="${i}"></div>`;
+        }).join('');
+      }
+      case 'essay': {
+        if (readOnly) {
+          return `<div>
+            <div><span class="${isCorrect ? 'text-success' : 'text-danger'}">你的答案：${escapeHtml(t4ReviewEngine._lastUserAnswer || '(未作答)')}</span></div>
+            ${!isCorrect ? `<div class="text-success">正确答案：${escapeHtml(correctAnswer)}</div>` : ''}
+          </div>`;
+        }
+        return `<textarea class="form-control review-input" rows="3" placeholder="请输入答案"></textarea>`;
+      }
+      default:
+        return '';
+    }
+  },
+
+  async destroy() {
+    t4ReviewEngine = null;
+    t4DetailAllQuestions = [];
+    t4DetailQuestionsByType = {};
+    t4DetailCurrentIndex = 0;
+    t4DetailCollapsedTypes = {};
+    if (this._t4KeyHandler) {
+      document.removeEventListener('keydown', this._t4KeyHandler);
+      this._t4KeyHandler = null;
+    }
+  }
+};
+
+window._t4WrongbookPage = _t4WrongbookPage;
+
+// Global functions for T4
+async function t4OpenReviewModal(bankId) {
+  const user = getCurrentUser();
+  const allWQs = await getWrongQuestionsByUserAndBank(user.id, bankId);
+  const types = [...new Set(allWQs.map(w => w.type))];
+
+  let modalHtml = '<p class="mb-3">选择要扫盲的题型：</p>';
+  for (const t of types) {
+    const count = allWQs.filter(w => w.type === t).length;
+    modalHtml += `<div class="form-check"><input class="form-check-input t4-review-type" type="checkbox" value="${t}" id="rt_${t}" checked><label class="form-check-label" for="rt_${t}">${TYPE_LABELS[t]}（${count} 题）</label></div>`;
+  }
+
+  const { result } = showModal('选择扫盲题型', modalHtml, [
+    { text: '取消', cls: 'btn-secondary' },
+    { text: '开始扫盲', cls: 'btn-success' }
+  ]);
+
+  const idx = await result;
+  if (idx === 1) {
+    const selected = document.querySelectorAll('.t4-review-type:checked');
+    const selectedTypes = Array.from(selected).map(cb => cb.value);
+    if (selectedTypes.length === 0) { showToast('请至少选择一种题型', 'warning'); return; }
+    location.hash = `#/t4/${bankId}/review?types=${selectedTypes.join(',')}`;
+  }
+}
+
+// Submit answer for the current question
+async function t4SubmitAnswer() {
+  const engine = t4ReviewEngine;
+  if (!engine || engine.group.length === 0 || engine.showingResult) return;
+
+  const wq = engine.group[engine.groupIndex];
+  const area = document.getElementById('t4ReviewArea');
+  const type = wq.type;
+
+  // Get user answer from the DOM
+  let userAnswer;
+  if (type === 'single' || type === 'tf') {
+    const sel = area.querySelector('.option-item.selected');
+    userAnswer = sel ? sel.dataset.value : null;
+  } else if (type === 'multi') {
+    const sels = area.querySelectorAll('.option-item.selected');
+    userAnswer = Array.from(sels).map(el => el.dataset.value).sort().join('');
+  } else if (type === 'fill') {
+    userAnswer = Array.from(area.querySelectorAll('.review-input')).map(inp => inp.value);
+  } else if (type === 'essay') {
+    userAnswer = area.querySelector('.review-input')?.value || '';
+  }
+
+  if (userAnswer === null || userAnswer === undefined || userAnswer === '') {
+    showToast('请先作答', 'warning');
+    return;
+  }
+
+  const isCorrect = checkAnswer(userAnswer, wq.answer, type);
+
+  // Store result for display
+  engine._lastUserAnswer = userAnswer;
+  engine._lastCorrect = isCorrect;
+  engine.showingResult = true;
+  if (isCorrect) {
+    wq.correctStreak++;
+    if (wq.correctStreak >= 3) {
+      // Mastered! Remove from DB and group
+      await deleteWrongQuestion(wq.id);
+      engine.cleared++;
+      engine.group.splice(engine.groupIndex, 1);
+      // Fill from pool
+      if (engine.pool.length > 0) {
+        const newQ = engine.pool.shift();
+        if (newQ.correctStreak === undefined) newQ.correctStreak = 0;
+        engine.group.splice(engine.groupIndex, 0, newQ);
+      } else {
+        // No more in pool, adjust index
+        if (engine.groupIndex >= engine.group.length && engine.group.length > 0) {
+          engine.groupIndex = 0;
+        }
+      }
+      engine.showingResult = false;  // Reset for the replacement question
+      showToast('已掌握！连续正确3次', 'success');
+    } else {
+      showToast(`正确！还需连续正确 ${3 - wq.correctStreak} 次`, 'success');
+    }
+  } else {
+    wq.correctStreak = 0;
+    wq.wrongCount++;
+    await putWrongQuestion(wq);
+    showToast('回答错误，连续正确计数已重置', 'warning');
+  }
+
+  // Re-render
+  _t4WrongbookPage.updateReviewStatusBar();
+  _t4WrongbookPage.renderCurrentQuestion();
+}
+
+// Move to next question
+function t4NextQuestion() {
+  const engine = t4ReviewEngine;
+  if (!engine || engine.group.length === 0) return;
+
+  engine.showingResult = false;
+
+  // Move to next question in group (cycle)
+  engine.groupIndex = (engine.groupIndex + 1) % engine.group.length;
+
+  // If group is now empty, show completion
+  if (engine.group.length === 0) {
+    _t4WrongbookPage.updateReviewStatusBar();
+    _t4WrongbookPage.renderCurrentQuestion();
+    return;
+  }
+
+  _t4WrongbookPage.updateReviewStatusBar();
+  _t4WrongbookPage.renderCurrentQuestion();
+}
+
+// Skip current question (move to next without affecting streak)
+function t4SkipQuestion(idx) {
+  const engine = t4ReviewEngine;
+  if (!engine || engine.group.length === 0) return;
+  if (engine.showingResult) {
+    // If showing result, just go next
+    t4NextQuestion();
+    return;
+  }
+  // Just move to next
+  engine.groupIndex = (engine.groupIndex + 1) % engine.group.length;
+  _t4WrongbookPage.updateReviewStatusBar();
+  _t4WrongbookPage.renderCurrentQuestion();
+}
