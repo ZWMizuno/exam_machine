@@ -6,6 +6,10 @@ let t2DetailCurrentType = 'single';
 let t2DetailChanges = [];
 const T2_DETAIL_PAGE_SIZE = 20;
 
+// 动态追踪每个题目的选项和空数量（edit 模式）
+let _trackedOpts = {};   // { [qid]: { [label]: value } }
+let _trackedBlankCounts = {}; // { [qid]: number }
+
 const _t2DetailPage = {
   async render(container, params) {
     const bankId = parseInt(params.bankId);
@@ -20,6 +24,8 @@ const _t2DetailPage = {
     t2DetailSearchQuery = '';
     t2DetailChanges = [];
     t2DetailCurrentType = 'single';
+    _trackedOpts = {};
+    _trackedBlankCounts = {};
 
     const counts = await getQuestionCounts(bankId);
     // Determine available types
@@ -64,15 +70,33 @@ const _t2DetailPage = {
                   : `<span>${escapeHtml(q.content)}</span>`}
                 </div>`;
 
-        // Options
+        // Options (edit mode supports add/remove up to 8)
         if (q.type === 'single' || q.type === 'multi') {
-          const opts = q.options || {};
-          const labels = Object.keys(opts).sort();
-          questionsHtml += `<div class="col-12"><div class="d-flex gap-2 flex-wrap">`;
+          const qid = String(q.id); // normalize to string for consistent key usage
+          const baseOpts = q.options || {};
+          const tracked = _trackedOpts[qid] || {};
+          const merged = { ...baseOpts };
+          for (const k in tracked) merged[k] = tracked[k];
+          // Filter out options marked for removal in t2DetailChanges
+          const removalLabels = (t2DetailChanges || [])
+            .filter(c => c.questionId === q.id && c.field.startsWith('option_') && c.newValue === '_REMOVE_')
+            .map(c => c.field.replace('option_', ''));
+          for (const rl of removalLabels) delete merged[rl];
+          const labels = Object.keys(merged).sort();
+          const maxOpt = q.type === 'single' ? 4 : 8;
+          questionsHtml += `<div class="col-12"><div class="d-flex gap-2 flex-wrap align-items-center">`;
           for (const label of labels) {
+            const canDel = labels.length > 1;
             questionsHtml += isEdit
-              ? `<span class="small"><strong>${label}:</strong> <input type="text" class="form-control form-control-sm d-inline-block" style="width:120px" data-field="option_${label}" value="${escapeHtml(opts[label])}"></span>`
-              : `<span class="small"><strong>${label}:</strong> ${escapeHtml(opts[label])}</span>`;
+              ? `<span class="small d-flex align-items-center gap-1">
+                  <strong>${label.replace('option_', '')}:</strong>
+                  <input type="text" class="form-control form-control-sm" style="width:120px" data-field="option_${label}" value="${escapeHtml(merged[label])}" data-qid="${qid}">
+                  ${canDel ? `<button class="btn btn-sm btn-link text-danger p-0" data-remove-opt="${qid}" data-opt-label="${label}" title="删除选项"><i class="bi bi-dash-circle"></i></button>` : ''}
+                </span>`
+              : `<span class="small"><strong>${label}:</strong> ${escapeHtml(merged[label])}</span>`;
+          }
+          if (isEdit && labels.length < maxOpt) {
+            questionsHtml += `<button class="btn btn-sm btn-outline-primary" data-add-opt="${qid}" data-q-type="${q.type}"><i class="bi bi-plus"></i>选项</button>`;
           }
           questionsHtml += `</div></div>`;
         }
@@ -92,18 +116,35 @@ const _t2DetailPage = {
             ? `<select class="form-select form-select-sm" style="width:100px" data-field="answer"><option value="true" ${q.answer === 'true' ? 'selected' : ''}>正确</option><option value="false" ${q.answer === 'false' ? 'selected' : ''}>错误</option></select>`
             : `<span class="badge bg-success">答案: ${q.answer === 'true' ? '正确' : '错误'}</span>`;
         } else if (q.type === 'fill') {
+          const qid = String(q.id);
+          const baseCount = (q.answer || []).length;
+          const count = _trackedBlankCounts[qid] !== undefined ? _trackedBlankCounts[qid] : baseCount;
           const blanks = q.answer || [];
           questionsHtml += isEdit
-            ? blanks.map((a, i) => `<input type="text" class="form-control form-control-sm mb-1" style="width:200px" data-field="blank_${i}" value="${escapeHtml(a)}" placeholder="空${i+1}">`).join('')
+            ? `<div class="d-flex gap-2 flex-wrap align-items-center">
+                ${Array.from({ length: count }, (_, i) => {
+                  const val = i < blanks.length ? blanks[i] : '';
+                  const trackedKey = `blank_${i}`;
+                  const trackedVal = (_trackedOpts[qid] || {})[trackedKey];
+                  const displayVal = trackedVal !== undefined ? trackedVal : val;
+                  const canDel = count > 1;
+                  return `<span class="small d-flex align-items-center gap-1">
+                    <strong>空${i + 1}:</strong>
+                    <input type="text" class="form-control form-control-sm" style="width:160px" data-field="blank_${i}" value="${escapeHtml(displayVal)}" data-qid="${qid}" placeholder="空${i+1}">
+                    ${canDel ? `<button class="btn btn-sm btn-link text-danger p-0" data-remove-blank="${qid}" data-blank-idx="${i}" title="删除空"><i class="bi bi-dash-circle"></i></button>` : ''}
+                  </span>`;
+                }).join('')}
+                ${count < 8 ? `<button class="btn btn-sm btn-outline-primary" data-add-blank="${qid}"><i class="bi bi-plus"></i>空</button>` : ''}
+               </div>`
             : `<span class="badge bg-success">答案: ${blanks.map((a, i) => `空${i+1}: ${escapeHtml(a)}`).join('; ')}</span>`;
         } else if (q.type === 'essay') {
           questionsHtml += isEdit
-            ? `<textarea class="form-control form-control-sm" style="width:250px" data-field="answer" rows="2">${escapeHtml(q.answer || '')}</textarea>`
+            ? `</div><div class="col-12 mt-1"><textarea class="form-control form-control-sm" data-field="answer" rows="2" placeholder="请输入答案">${escapeHtml(q.answer || '')}</textarea>`
             : `<span class="badge bg-success">答案: ${escapeHtml(q.answer || '')}</span>`;
         }
 
         if (isEdit) {
-          questionsHtml += `<button class="btn btn-sm btn-outline-danger btn-icon ms-2" data-delete-q="${q.id}"><i class="bi bi-trash"></i></button>`;
+          questionsHtml += `<button class="btn btn-sm btn-outline-danger btn-icon" data-delete-q="${q.id}"><i class="bi bi-trash"></i></button>`;
         }
         questionsHtml += `</div></div></div></div>`;
       }
@@ -168,29 +209,129 @@ const _t2DetailPage = {
       });
     }
 
-    // Track changes (edit mode)
+    // === Edit mode event delegation ===
     if (isEdit) {
-      container.querySelectorAll('.question-edit-item input, .question-edit-item select, .question-edit-item textarea').forEach(input => {
+      const questionsDiv = document.getElementById('t2DetailQuestions');
+
+      // Delegate: input/select/textarea change
+      questionsDiv.addEventListener('change', (e) => {
+        const input = e.target;
+        if (!input.matches('input, select, textarea')) return;
         const field = input.dataset.field;
-        const qid = parseInt(input.closest('.question-edit-item').dataset.qid);
-        input.addEventListener('change', () => {
-          const existing = t2DetailChanges.find(c => c.questionId === qid && c.field === field);
-          if (existing) {
-            existing.newValue = input.value;
-          } else {
-            t2DetailChanges.push({ questionId: qid, field, newValue: input.value });
-          }
-        });
+        const qidRaw = input.dataset.qid || input.closest('.question-edit-item').dataset.qid;
+        if (!field || !qidRaw) return;
+        const qidNum = parseInt(qidRaw);
+        const qidStr = String(qidRaw);
+
+        // Persist into tracked maps for options/blanks (string key)
+        if (!_trackedOpts[qidStr]) _trackedOpts[qidStr] = {};
+        if (field.startsWith('option_') || field.startsWith('blank_')) {
+          _trackedOpts[qidStr][field] = input.value;
+        }
+
+        // Push to changes (number key)
+        const existing = t2DetailChanges.find(c => c.questionId === qidNum && c.field === field);
+        if (existing) {
+          existing.newValue = input.value;
+        } else {
+          t2DetailChanges.push({ questionId: qidNum, field, newValue: input.value });
+        }
       });
 
-      // Delete question
-      container.querySelectorAll('[data-delete-q]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const qid = parseInt(btn.dataset.deleteQ);
-          t2DetailChanges.push({ questionId: qid, field: '_delete', newValue: true });
-          btn.closest('.question-edit-item').remove();
-          showToast('已标记为删除（点击确认修改生效）', 'warning');
-        });
+      // Delegate: add option
+      questionsDiv.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-add-opt]');
+        if (!btn) return;
+        const qidNum = parseInt(btn.dataset.addOpt);
+        const qidStr = String(qidNum);
+        const qType = btn.dataset.qType;
+        const q = await getQuestionById(qidNum);
+        if (!q) return;
+        if (!_trackedOpts[qidStr]) _trackedOpts[qidStr] = {};
+        const tracked = _trackedOpts[qidStr];
+        const baseOpts = q.options || {};
+        const baseKeys = Object.keys(baseOpts).sort();
+        const trackedKeys = Object.keys(tracked).filter(k => k.startsWith('option_')).map(k => k.replace('option_', ''));
+        // Subtract options marked for removal
+        const removedLabels = (t2DetailChanges || [])
+          .filter(c => c.questionId === qidNum && c.field.startsWith('option_') && c.newValue === '_REMOVE_')
+          .map(c => c.field.replace('option_', ''));
+        // trackedKeys must also exclude any that are marked for removal (in case original option was re-added then removed)
+        const activeTrackedKeys = trackedKeys.filter(k => !removedLabels.includes(k));
+        // Find first letter not already used (after accounting for removals)
+        const used = new Set([...baseKeys.filter(k => !removedLabels.includes(k)), ...activeTrackedKeys]);
+        const maxOpt = qType === 'single' ? 4 : 8;
+        const maxLetter = String.fromCharCode(65 + maxOpt - 1); // 'D' for single (4), 'H' for multi (8)
+        let nextChar = 'A';
+        while (used.has(nextChar)) nextChar = String.fromCharCode(nextChar.charCodeAt(0) + 1);
+        // Only block if nextChar exceeds the max allowed letter (e.g., 'E' when max is 4)
+        if (nextChar > maxLetter) { showToast(`最多${maxOpt}个选项`, 'warning'); return; }
+        _trackedOpts[qidStr][`option_${nextChar}`] = '';
+        this.renderContent(container, bank, bankId, isEdit, counts, availableTypes);
+      });
+
+      // Delegate: remove option
+      questionsDiv.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-remove-opt]');
+        if (!btn) return;
+        const qidNum = parseInt(btn.dataset.removeOpt);
+        const qidStr = String(qidNum);
+        const label = btn.dataset.optLabel;
+        const q = await getQuestionById(qidNum);
+        if (!q) return;
+        if (!_trackedOpts[qidStr]) _trackedOpts[qidStr] = {};
+        const baseKeys = Object.keys(q.options || {}).sort();
+        const tracked = _trackedOpts[qidStr];
+        const trackedKeys = Object.keys(tracked).filter(k => k.startsWith('option_')).map(k => k.replace('option_', ''));
+        const removedLabels = (t2DetailChanges || [])
+          .filter(c => c.questionId === qidNum && c.field.startsWith('option_') && c.newValue === '_REMOVE_')
+          .map(c => c.field.replace('option_', ''));
+        const totalOpts = baseKeys.filter(k => !removedLabels.includes(k)).length + trackedKeys.filter(k => !removedLabels.includes(k)).length;
+        if (totalOpts <= 1) { showToast('至少保留一个选项', 'warning'); return; }
+        if (trackedKeys.includes(label)) {
+          // Added in this edit session — just delete from tracked
+          delete _trackedOpts[qidStr][`option_${label}`];
+        } else {
+          // Original option — mark for removal from DB
+          t2DetailChanges.push({ questionId: qidNum, field: `option_${label}`, newValue: '_REMOVE_' });
+        }
+        this.renderContent(container, bank, bankId, isEdit, counts, availableTypes);
+      });
+
+      // Delegate: add blank
+      questionsDiv.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-add-blank]');
+        if (!btn) return;
+        const qid = String(btn.dataset.addBlank);
+        const currentCount = _trackedBlankCounts[qid] !== undefined ? _trackedBlankCounts[qid] : 0;
+        if (currentCount >= 8) { showToast('最多8个空', 'warning'); return; }
+        _trackedBlankCounts[qid] = currentCount + 1;
+        if (!_trackedOpts[qid]) _trackedOpts[qid] = {};
+        _trackedOpts[qid][`blank_${currentCount}`] = '';
+        this.renderContent(container, bank, bankId, isEdit, counts, availableTypes);
+      });
+
+      // Delegate: remove blank
+      questionsDiv.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-remove-blank]');
+        if (!btn) return;
+        const qid = String(btn.dataset.removeBlank);
+        const idx = parseInt(btn.dataset.blankIdx);
+        const currentCount = _trackedBlankCounts[qid] !== undefined ? _trackedBlankCounts[qid] : 1;
+        if (currentCount <= 1) { showToast('至少保留一个空', 'warning'); return; }
+        _trackedBlankCounts[qid] = currentCount - 1;
+        t2DetailChanges.push({ questionId: parseInt(qid), field: `blank_${idx}`, newValue: '_REMOVE_' });
+        this.renderContent(container, bank, bankId, isEdit, counts, availableTypes);
+      });
+
+      // Delegate: delete question
+      questionsDiv.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-delete-q]');
+        if (!btn) return;
+        const qid = parseInt(btn.dataset.deleteQ);
+        t2DetailChanges.push({ questionId: qid, field: '_delete', newValue: true });
+        btn.closest('.question-edit-item').remove();
+        showToast('已标记为删除（点击确认修改生效）', 'warning');
       });
 
       // Confirm edit
@@ -221,27 +362,85 @@ const _t2DetailPage = {
 
         const idx = await result;
         if (idx === 1) {
-          // Apply changes
-          for (const c of t2DetailChanges) {
-            if (c.field === '_delete') {
-              await deleteQuestion(c.questionId);
-            } else {
-              const update = {};
+          // Apply changes — group by question to minimize DB writes
+          const qids = [...new Set(t2DetailChanges.map(c => c.questionId))];
+          for (const qid of qids) {
+            const changes = t2DetailChanges.filter(c => c.questionId === qid);
+            const q = await getQuestionById(qid);
+            if (!q) continue;
+
+            // Check if deleted
+            if (changes.some(c => c.field === '_delete')) {
+              await deleteQuestion(qid);
+              continue;
+            }
+
+            const update = {};
+            for (const c of changes) {
+              if (c.field === '_delete') continue;
+
               if (c.field.startsWith('option_')) {
-                const q = await getQuestionById(c.questionId);
-                const options = { ...(q.options || {}) };
-                options[c.field.replace('option_', '')] = c.newValue;
-                update.options = options;
+                const label = c.field.replace('option_', '');
+                if (c.newValue === '_REMOVE_') {
+                  update._removeOption = label;
+                } else {
+                  update._setOption = update._setOption || {};
+                  update._setOption[label] = c.newValue;
+                }
               } else if (c.field.startsWith('blank_')) {
-                const q = await getQuestionById(c.questionId);
-                const blanks = [...(q.answer || [])];
-                blanks[parseInt(c.field.replace('blank_', ''))] = c.newValue;
-                update.answer = blanks;
+                const idx2 = parseInt(c.field.replace('blank_', ''));
+                if (c.newValue === '_REMOVE_') {
+                  update._removeBlank = idx2;
+                } else {
+                  update._setBlank = update._setBlank || {};
+                  update._setBlank[idx2] = c.newValue;
+                }
               } else {
                 update[c.field] = c.newValue;
               }
-              await updateQuestion(c.questionId, update);
             }
+
+            // Apply option changes
+            if (update._setOption || update._removeOption) {
+              const options = { ...(q.options || {}) };
+              if (update._setOption) {
+                for (const [k, v] of Object.entries(update._setOption)) options[k] = v;
+              }
+              if (update._removeOption) {
+                delete options[update._removeOption];
+                // Re-key options A, B, C...
+                const sorted = Object.keys(options).sort();
+                const renamed = {};
+                sorted.forEach((k, i) => { renamed[String.fromCharCode(65 + i)] = options[k]; });
+                update.options = renamed;
+              } else {
+                update.options = options;
+              }
+            }
+
+            // Apply blank changes — rebuild from tracked if count changed
+            if (update._setBlank || update._removeBlank !== undefined) {
+              const countChanged = _trackedBlankCounts[qid] !== undefined;
+              if (countChanged) {
+                // Rebuild full answer from tracked state
+                const finalCount = _trackedBlankCounts[qid];
+                const tracked = _trackedOpts[qid] || {};
+                const blanks = Array.from({ length: finalCount }, (_, i) => {
+                  const tk = `blank_${i}`;
+                  return (tracked[tk] !== undefined ? tracked[tk] : (q.answer && q.answer[i] !== undefined ? q.answer[i] : ''));
+                });
+                update.answer = blanks;
+              } else {
+                // Just content edit — apply setBlank to copy of original
+                const blanks = [...(q.answer || [])];
+                if (update._setBlank) {
+                  for (const [idx2, v] of Object.entries(update._setBlank)) blanks[parseInt(idx2)] = v;
+                }
+                update.answer = blanks;
+              }
+            }
+
+            await updateQuestion(qid, update);
           }
           await updateBank(bankId, { updatedAt: new Date().toISOString() });
           showToast('修改已保存', 'success');

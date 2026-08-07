@@ -21,20 +21,28 @@
   --transition: 0.2s ease;
 }
 
+/* === Custom Font === */
+@font-face {
+  font-family: 'SourceHanSansOLD-Heavy';
+  src: url('../SourceHanSansOLD-Heavy-2.otf') format('opentype');
+  font-weight: heavy;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* === Base === */
 * { box-sizing: border-box; }
+html, body { height: 100vh; overflow: hidden; margin: 0; }
 body {
   font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
   background: var(--color-bg);
   color: var(--color-text);
-  min-height: 100vh;
-  margin: 0;
 }
 
 /* === Layout === */
-.app-container { min-height: 100vh; display: flex; flex-direction: column; }
-#app-content { flex: 1; padding: 1.5rem 1rem; }
-#app-content .container-fluid { max-width: 1400px; }
+.app-container { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+#app-content { flex: 1; padding: 0 1rem 1rem; overflow: hidden; display: flex; flex-direction: column; }
+#app-content .container-fluid { max-width: 1400px; flex: 1; display: flex; flex-direction: column; }
 
 /* === Navbar === */
 .navbar { box-shadow: var(--shadow-sm); background: var(--color-surface) !important; padding: 0.5rem 1rem; }
@@ -146,40 +154,53 @@ body {
 .streak-light { width: 1.25rem; height: 1.25rem; border-radius: 50%; border: 2px solid var(--color-border); transition: var(--transition); }
 .streak-light.lit { background: var(--color-success); border-color: var(--color-success); box-shadow: 0 0 6px rgba(28,200,138,0.5); }
 
-/* === Book Grid (T4) — 2×4 clean grid with bookend poles === */
-
-/* Book grid — 4 columns × 2 rows */
+/* === Book Grid (T4) — 2×4, fills remaining viewport height === */
+/*
+  Layout stack (100vh total):
+    navbar      ~56px
+    breadcrumb  ~40px
+    h4 title    ~48px  (flex-shrink:0)
+    book-grid   flex:1 (remaining space)
+    pagination  ~52px  (flex-shrink:0)
+  Fixed overhead = 56+40+48+52 = 196px
+  app-content padding = 24px top + 24px bottom = 48px
+  Total overhead = 196 + 48 = 244px
+  Each row = (100vh - 212px) / 2 - half of 50px row-gap (25px)
+*/
 .book-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 80px 20px;
+  grid-template-rows: repeat(2, calc((100vh - 212px) / 2 - 25px));
+  gap: 50px 24px;
   position: relative;
-  padding: 16px 0 28px;
+  align-content: start;   /* books start at top of cell, shelf anchored to bottom */
 }
 
-@media (max-width: 992px) {
-  .book-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
-}
-@media (max-width: 576px) {
-  .book-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
-}
-
-/* Book wrapper — positions book and shelf together */
+/* Book wrapper — fills cell, flex centers book+shelf as a unit */
 .book-wrapper {
   position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;   /* center the unit vertically in the cell */
   width: 100%;
-  cursor: pointer;
+  height: 100%;
 }
 
-/* Individual book — tall narrow notebook, portrait orientation */
+/* Individual book — strict 120:186 ratio, centered in cell */
 .book-card {
-  position: relative;
+  position: relative;        /* normal flow — shelf is its sibling below */
   z-index: 1;
-  width: 120px;
-  height: 186px;
+  /*
+    Height = 80% of grid row height.
+    Width = Height / 1.55 (exact 120:186 ratio).
+    Centered in cell by book-wrapper flex justify-content: center.
+  */
+  height: 80%;
+  width: calc((100vh - 212px) / 2 * 0.8 / 1.55 - 20px);
+  aspect-ratio: 120 / 186;   /* enforced ratio — width derived from height */
+  max-width: 100%;
+  cursor: pointer;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   background: var(--book);
   border-radius: 4px 10px 10px 4px;
@@ -196,7 +217,7 @@ body {
   content: '';
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  width: 3px;
+  width: 0.5em;
   background: rgba(255,255,255,0.1);
   border-radius: 4px 0 0 4px;
 }
@@ -207,14 +228,13 @@ body {
     0 2px 6px rgba(0,0,0,0.12);
 }
 
-/* Static shelf platform under each book — never moves */
+/* Static shelf — sibling of book-card, 1.5× book width */
 .book-shelf {
-  position: absolute;
-  bottom: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 8px;
+  position: relative;
+  align-self: center;
+  width: calc(((100vh - 212px) / 2 * 0.8 / 1.55 - 20px) * 1.5);
+  height: 0.5em;
+  cursor: default;
   background: linear-gradient(
     180deg,
     #E8E0D8 0%,
@@ -230,17 +250,17 @@ body {
   z-index: 0;
 }
 
-
-/* Logo — top-left, colored icon only (no background box) */
+/* Logo — left edge at 8% of book width, scales rightward from left edge */
 .book-logo {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 1.45rem;
+  top: 4%;
+  left: 10%;
+  transform: scale(2.5);
   color: var(--logo);
   z-index: 3;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
   line-height: 1;
+  transform-origin: top left;
 }
 
 /* Body — text area */
@@ -254,9 +274,9 @@ body {
   z-index: 1;
 }
 .book-body .book-name {
-  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "SimHei", sans-serif;
-  font-weight: 700;
-  font-size: 0.9rem;
+  font-family: 'SourceHanSansOLD-Heavy', 'Noto Sans CJK SC', sans-serif;
+  font-weight: 900;
+  font-size: 1.625rem;   /* 1.3rem × 1.25 */
   color: var(--text);
   text-align: center;
   line-height: 1.3;
@@ -264,20 +284,20 @@ body {
   letter-spacing: 0.01em;
 }
 .book-body .book-count {
-  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", "SimHei", sans-serif;
-  font-size: 0.78rem;
+  font-family: 'SourceHanSansOLD-ExtraLight', 'Noto Sans CJK SC', sans-serif;
+  font-weight: 300;
+  font-size: 0.975rem;   /* 0.78rem × 1.25 */
   color: var(--text);
   opacity: 0.75;
 }
 
-
-/* Bookmark — elegant dovetail, single smooth taper to center point */
+/* Bookmark — scales with book height, enlarged */
 .book-bookmark {
   position: absolute;
   top: 100%;
-  right: 8px;
-  width: 16px;
-  height: 29px;
+  left: 20px;
+  width: 1.5em;           /* 0.9em × 1.67 */
+  height: 2.6em;          /* 1.6em × 1.625 */
   background: var(--bookmark);
   z-index: 2;
   clip-path: polygon(
@@ -287,8 +307,33 @@ body {
     50% 100%,
     0% 45%
   );
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
+  filter: drop-shadow(1.25px 2.5px 2.5px rgba(0,0,0,0.25));
 }
+
+@media (max-width: 992px) {
+  .book-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(4, calc((100vh - 212px) / 4 - 20px));
+    gap: 40px 24px;
+  }
+}
+@media (max-width: 576px) {
+  .book-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+}
+
+
+/* Body — text area */
+.book-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  z-index: 1;
+}
+
+/* Bookmark — elegant dovetail, single smooth taper to center point */
 
 /* === Buttons === */
 .btn { border-radius: var(--radius); transition: var(--transition); }

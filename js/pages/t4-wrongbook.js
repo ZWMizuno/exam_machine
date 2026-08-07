@@ -2,23 +2,15 @@
 
 // 12 color schemes: 书本logo, 文字, 书签, 书本
 const BOOK_COLOR_SCHEMES = [
-  { logo: '#B0F962', text: '#D1D4DB', bookmark: '#FF7733', book: '#23262B' },
-  { logo: '#E8672D', text: '#FEDA9E', bookmark: '#772823', book: '#242424' },
-  { logo: '#206F50', text: '#F5EAD6', bookmark: '#E49D69', book: '#1B1B1B' },
-  { logo: '#9FE7E6', text: '#E8FBFF', bookmark: '#156B8C', book: '#052228' },
+  { logo: '#9FE7E6', text: '#E8FBFF', bookmark: '#156B8C', book: '#052228' }, //高端经典配色
   { logo: '#64A1C0', text: '#E7D2BF', bookmark: '#FF6357', book: '#2E2E2E' },
-  { logo: '#926858', text: '#FFDCA3', bookmark: '#C97F59', book: '#29221C' },
   { logo: '#23A8A7', text: '#F46A6A', bookmark: '#053154', book: '#181818' },
   { logo: '#FF6054', text: '#FFDCAC', bookmark: '#5B889F', book: '#292929' },
-  { logo: '#5F8CA1', text: '#FFF0E0', bookmark: '#E7D2C1', book: '#303030' },
-  { logo: '#278FC8', text: '#F9B6BB', bookmark: '#1D5290', book: '#1F1F1F' },
-  { logo: '#4273AD', text: '#D7D8D0', bookmark: '#435674', book: '#002329' },
   { logo: '#FCC96E', text: '#2E9C91', bookmark: '#136058', book: '#132432' },
-  { logo: '#053154', text: '#FFFFFF', bookmark: '#5A5750', book: '#F05654' },
+
+  { logo: '#053154', text: '#FFFFFF', bookmark: '#5A5750', book: '#F05654' }, //质感节日风
   { logo: '#C7371D', text: '#FCDC93', bookmark: '#185A56', book: '#4D262B' },
-  { logo: '#0B908F', text: '#CB8B2A', bookmark: '#753914', book: '#052228' },
   { logo: '#F05654', text: '#D9AE84', bookmark: '#C0732F', book: '#200E02' },
-  { logo: '#D5BD7D', text: '#EFAE1E', bookmark: '#ADA37F', book: '#000000' },
   { logo: '#D1A1BA', text: '#A6D4D6', bookmark: '#024B5E', book: '#841C3C' },
   { logo: '#EC9B7A', text: '#F8C761', bookmark: '#203822', book: '#595182' },
   { logo: '#A92A01', text: '#3E5626', bookmark: '#F4D376', book: '#F3CDA8' },
@@ -28,7 +20,23 @@ const BOOK_COLOR_SCHEMES = [
   { logo: '#145750', text: '#FCC96E', bookmark: '#212F3A', book: '#2D8A80' },
   { logo: '#9B8BA6', text: '#E3B0B7', bookmark: '#2A1943', book: '#881C3C' },
   { logo: '#A85253', text: '#1C2C58', bookmark: '#CB7761', book: '#FFC4C2' },
-  { logo: '#624235', text: '#F4D360', bookmark: '#4A010A', book: '#302521' },
+
+  { logo: '#B4CCD2', text: '#F0DC84', bookmark: '#F7F7E0', book: '#79A3CE' }, //清新1
+  { logo: '#3D7695', text: '#C85E3D', bookmark: '#DDB355', book: '#DFC7B4' },
+  { logo: '#A4C2CA', text: '#B05553', bookmark: '#3B567F', book: '#CAA4A3' },
+  { logo: '#95C3BE', text: '#DA6790', bookmark: '#AEBE6C', book: '#ECB4A4' },
+
+  { logo: '#F9F4EA', text: '#8D6C63', bookmark: '#FCD3D5', book: '#CFE4DD' }, //清新2
+  { logo: '#B5DAE9', text: '#63BAD9', bookmark: '#CCE7D9', book: '#CAEBED' },
+  { logo: '#4663ac', text: '#f3dd87', bookmark: '#ee8984', book: '#79bfe0' },
+  { logo: '#B9D9EA', text: '#EFE4D4', bookmark: '#F8819B', book: '#F5C7C9' },
+  { logo: '#E4F6A9', text: '#FF82A2', bookmark: '#BDDE93', book: '#FED0D6' },
+  { logo: '#CADEC3', text: '#225DAB', bookmark: '#CBAF98', book: '#95B4E0' },
+  { logo: '#F1D996', text: '#779B84', bookmark: '#B69F8A', book: '#C8D4C0' },
+  { logo: '#C5863C', text: '#FAE593', bookmark: '#849C4D', book: '#FE8F29' },
+  { logo: '#EFE4D4', text: '#302B58', bookmark: '#9078AC', book: '#B6A9C8' },
+
+
 ];
 
 const BOOKS_PER_PAGE = 8; // 2×4 grid
@@ -84,11 +92,11 @@ const _t4WrongbookPage = {
         var b = pageBooks[i];
         var scheme = BOOK_COLOR_SCHEMES[b.colorIndex != null ? b.colorIndex : (start + i) % BOOK_COLOR_SCHEMES.length];
         var bmText = getBookmarkTextColor(scheme.bookmark);
-        html += '<div class="book-wrapper" onclick="location.hash=\'#/t4/' + b.bankId + '\'">' +
-          '<div class="book-card" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + bmText + '">' +
+        html += '<div class="book-wrapper">' +
+          '<div class="book-card" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + bmText + '" onclick="location.hash=\'#/t4/' + b.bankId + '\'">' +
             '<div class="book-logo"><i class="bi bi-book-fill"></i></div>' +
             '<div class="book-body">' +
-              '<div class="book-name">' + escapeHtml(b.bankName) + '</div>' +
+              '<div class="book-name" style="font-family:\'SourceHanSansOLD-Heavy\',\'Source Han Sans OLD Heavy\',\'Noto Sans CJK SC\',sans-serif;font-weight:900">' + escapeHtml(b.bankName) + '</div>' +
               '<div class="book-count">' + b.count + ' 道错题</div>' +
             '</div>' +
             '<div class="book-bookmark"></div>' +
@@ -108,16 +116,18 @@ const _t4WrongbookPage = {
       }
     }
 
-    container.innerHTML = '<h4 class="mb-4"><i class="bi bi-book me-2"></i>错题集</h4>' +
-      '<div class="book-grid" id="t4BookGrid"></div>' +
-      '<div class="text-center mt-3" id="t4BookPagination"></div>';
+    container.innerHTML = '<h4 class="mb-3 flex-shrink-0" style="font-size:1.5rem"><i class="bi bi-book me-2"></i>错题集</h4>' +
+      '<div class="d-flex flex-column flex-grow-1 overflow-hidden" style="gap:0;padding-bottom:2.5rem;box-sizing:border-box">' +
+        '<div class="book-grid" id="t4BookGrid"></div>' +
+        '<div class="text-center flex-shrink-0" id="t4BookPagination"></div>' +
+      '</div>';
 
     renderBookCards();
   },
 
   goBookPage(page) {
-    this._bookGridPage = page;
-    this.renderGrid(document.getElementById('content'));
+    _t4WrongbookPage._bookGridPage = page;
+    _t4WrongbookPage.renderGrid(document.getElementById('app-content'));
   },
 
   async renderDetail(container, params) {

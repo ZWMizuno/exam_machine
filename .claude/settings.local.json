@@ -17,7 +17,10 @@
       "Read(//e//**)",
       "Bash(mkdir -p css && echo \"dir created\")",
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git -c user.email=dev@example.com -c user.name=Developer commit -m 'feat: 错题本全新UI设计 *)",
+      "Bash(grep -n \"book-grid\\\\|book-wrapper\\\\|book-card\\\\|book-shelf\\\\|app-content\\\\|html, body\\\\|body \\\\{|#app-content\")",
+      "Bash(git commit *)"
     ],
     "additionalDirectories": [
       "E:\\Myprojects\\exam_machine"

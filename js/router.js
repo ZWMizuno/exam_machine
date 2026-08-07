@@ -60,9 +60,6 @@ async function handleRoute() {
     try { await currentPage.destroy(); } catch (e) { console.error('Page destroy error:', e); }
   }
 
-  // Update breadcrumb
-  updateBreadcrumb(hashPath, params);
-
   // Render new page
   const content = document.getElementById('app-content');
   if (!content) return;
@@ -76,7 +73,8 @@ async function handleRoute() {
     content.innerHTML = `<div class="alert alert-danger m-3">页面加载错误: ${escapeHtml(e.message)}</div>`;
   }
 
-  // Update navbar active state
+  // Update breadcrumb and navbar AFTER render so pages can setState first
+  updateBreadcrumb(hashPath, params);
   updateNavbarActive(hashPath);
 }
 
