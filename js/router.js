@@ -180,13 +180,16 @@ async function startRouter() {
   const restored = await restoreSession();
   if (!restored) {
     location.hash = '#/login';
-  } else {
-    if (!location.hash || location.hash === '#/' || location.hash === '#') {
-      location.hash = '#/home';
-    }
-    await handleRoute();
+  } else if (!location.hash || location.hash === '#/' || location.hash === '#') {
+    location.hash = '#/home';
   }
 
-  // Listen for hash changes
+  // Always render the initial route. location.hash = same-value does NOT fire
+  // hashchange, so refreshing on /login (or any page already on its target hash)
+  // would leave the page blank if we relied on the event. Call handleRoute
+  // explicitly here; the listener is attached afterward so this doesn't double-fire.
+  await handleRoute();
+
+  // Listen for subsequent hash changes
   window.addEventListener('hashchange', handleRoute);
 }
