@@ -188,4 +188,4 @@ exam_machine/
 
 本项目使用 [MIT License](LICENSE)。
 
-Copyright © 2026 考试机项目作者
+Copyright © 2026 ZWMizuno
