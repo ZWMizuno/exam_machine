@@ -87,7 +87,7 @@ function renderTimerDisplay(seconds, type) {
   return `<span class="${cssClass}">${timeStr}</span>`;
 }
 
-function renderTimerBar(seconds, type) {
+function renderTimerBar(seconds, type, instantFeedback) {
   const timeStr = formatTime(seconds);
   let progressWidth = 100;
   let barClass = 'bg-primary';
@@ -102,13 +102,20 @@ function renderTimerBar(seconds, type) {
   let timeClass = 'timer-display';
   if (type === 'exam' && seconds < 60) timeClass += ' danger';
 
+  const feedbackToggle = type === 'practice' ? `
+    <div class="form-check form-switch d-inline-block">
+      <input class="form-check-input" type="checkbox" id="instantFeedbackToggleTimer" ${instantFeedback ? 'checked' : ''}>
+      <label class="form-check-label small" for="instantFeedbackToggleTimer">即时纠错</label>
+    </div>` : '';
+
   return `
     <div class="exam-timer-bar">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-${type === 'exam' ? 'hourglass-split' : 'stopwatch'} text-primary"></i>
-        <span class="${timeClass}">${timeStr}</span>
+        <span class="${timeClass}" id="examTimerDisplay">${timeStr}</span>
         <span class="text-muted small">${type === 'exam' ? '剩余时间' : '已用时间'}</span>
       </div>
+      ${feedbackToggle}
       <div class="text-muted" style="font-size:0.75rem">注意：重新加载页面将导致${type === 'exam' ? '考试' : '练习'}退出</div>
     </div>`;
 }

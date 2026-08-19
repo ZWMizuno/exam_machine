@@ -145,7 +145,7 @@ async function generatePracticeSession(bankId, configs) {
 
   const user = getCurrentUser();
   const session = {
-    userId: user.id,
+    userId: user.id + '_practice',
     type: 'practice',
     bankId,
     bankName: bank.name,
@@ -230,6 +230,12 @@ function scoreSession(session) {
 // Record results to history and wrong questions
 async function recordResults(session, scoreResult) {
   const user = getCurrentUser();
+
+  // Award 1 coin per correct answer
+  if (scoreResult.correctCount > 0) {
+    await updateUserCoins(user.id, scoreResult.correctCount);
+    emit('coins:updated');
+  }
 
   const historyRecord = {
     userId: user.id,

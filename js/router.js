@@ -50,9 +50,32 @@ async function handleRoute() {
   // Active exam guard
   const state = getState();
   if (state.currentExam && !hashPath.startsWith('/t1/session')) {
-    const confirmed = await showConfirm('考试进行中', '当前有正在进行的考试/练习，离开将丢失进度。确定离开吗？', '离开', '继续作答', true);
-    if (!confirmed) { _guardRestore = true; location.hash = '#/t1/session'; return; }
-    setState({ currentExam: null });
+    const confirmed = await showConfirm(
+      '考试进行中',
+      '当前有正在进行的考试/练习，离开将丢失进度。确定离开吗？',
+      '离开',
+      '继续作答',
+      true
+    );
+    if (!confirmed) {
+      _guardRestore = true;
+      location.hash = '#/t1/session';
+      return;
+    }
+    // Confirmed: abandon session with isolation. If abandon throws or the method
+    // is missing, force state cleanup so the guard won't refire and render proceeds.
+    try {
+      if (window._t1SessionPage && typeof window._t1SessionPage.abandonAndDestroy === 'function') {
+        await window._t1SessionPage.abandonAndDestroy();
+      } else {
+        setState({ currentExam: null });
+      }
+    } catch (e) {
+      console.error('[Router] abandonAndDestroy failed:', e);
+      setState({ currentExam: null });
+    }
+    // Fall through: state.currentExam is null, the guard won't fire again.
+    // Let the normal destroy+render flow proceed to render the target page.
   }
 
   // Destroy previous page
@@ -91,7 +114,8 @@ function updateBreadcrumb(hash, params) {
     home: '首页', t1: '考试&练习', exam: '考试模式', practice: '练习模式',
     session: getState().currentExam?.type === 'practice' ? '练习中' : '考试中',
     t2: '题库集', add: '新增题库', edit: '编辑题库', view: '查看题库',
-    t3: '历史记录', t4: '错题集', review: '错题扫盲', t5: '试卷生成'
+    t3: '历史记录', t4: '错题集', review: '错题扫盲', t5: '试卷生成',
+    t6: '书架'
   };
 
   let path = '#';
@@ -113,11 +137,10 @@ function updateBreadcrumb(hash, params) {
   // Last segment is not clickable
   if (trail.length > 0) trail[trail.length - 1].href = null;
 
-  // "编辑题库" and "查看题库" are not clickable as intermediate segments
-  // because #/t2/edit and #/t2/view (without bankId) are not registered routes
+  // "查看题库" is not clickable as an intermediate segment
   // trail[i] corresponds to segs[i-1] (trail[0] is 首页)
   for (let i = 1; i < trail.length - 1; i++) {
-    if (trail[i].href && (segs[i - 1] === 'edit' || segs[i - 1] === 'view')) {
+    if (trail[i].href && segs[i - 1] === 'view') {
       trail[i].href = null;
     }
   }
@@ -145,13 +168,13 @@ async function startRouter() {
   addRoute('/t1/session', window._t1SessionPage, true);
   addRoute('/t2', window._t2BanksPage, true);
   addRoute('/t2/add', window._t2BanksPage, true, ['admin']);
-  addRoute('/t2/edit/:bankId', window._t2DetailPage, true, ['admin']);
   addRoute('/t2/view/:bankId', window._t2DetailPage, true);
   addRoute('/t3', window._t3HistoryPage, true);
   addRoute('/t4', window._t4WrongbookPage, true);
   addRoute('/t4/:bankId', window._t4WrongbookPage, true);
   addRoute('/t4/:bankId/review', window._t4WrongbookPage, true);
   addRoute('/t5', window._t5PaperPage, true);
+  addRoute('/t6', window._t6StorePage, true);
 
   // Check for stored session
   const restored = await restoreSession();

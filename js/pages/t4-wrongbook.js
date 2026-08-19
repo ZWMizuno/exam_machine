@@ -1,45 +1,66 @@
-// === T4 Wrong Question Book: Grid + Detail + Review ===
+// Color schemes: logo, text, bookmark, book, name
+// 高端经典（indices 0-4）
+const SKIN_CLASSIC = [
+  { logo: '#9FE7E6', text: '#E8FBFF', bookmark: '#156B8C', book: '#052228', name: '幽蓝经典' },
+  { logo: '#64A1C0', text: '#E7D2BF', bookmark: '#FF6357', book: '#2E2E2E', name: '墨韵经典' },
+  { logo: '#23A8A7', text: '#F46A6A', bookmark: '#053154', book: '#181818', name: '朱砂古典' },
+  { logo: '#FF6054', text: '#FFDCAC', bookmark: '#5B889F', book: '#292929', name: '金秋流金' },
+  { logo: '#FCC96E', text: '#2E9C91', bookmark: '#136058', book: '#132432', name: '翠玉古韵' },
+];
+// 质感节日风（indices 5-19）
+const SKIN_FESTIVE = [
+  { logo: '#053154', text: '#FFFFFF', bookmark: '#5A5750', book: '#F05654', name: '雪夜初雪' },
+  { logo: '#C7371D', text: '#FCDC93', bookmark: '#185A56', book: '#4D262B', name: '暖阳如沐' },
+  { logo: '#F05654', text: '#D9AE84', bookmark: '#C0732F', book: '#200E02', name: '暮云流金' },
+  { logo: '#D1A1BA', text: '#A6D4D6', bookmark: '#024B5E', book: '#841C3C', name: '玫瑰古堡' },
+  { logo: '#EC9B7A', text: '#F8C761', bookmark: '#203822', book: '#595182', name: '焦糖暖忆' },
+  { logo: '#A92A01', text: '#3E5626', bookmark: '#F4D376', book: '#F3CDA8', name: '檀红印记' },
+  { logo: '#9B8037', text: '#9C2C21', bookmark: '#E4B0B7', book: '#FEC1AE', name: '赭红印记' },
+  { logo: '#3A4B5B', text: '#061B3A', bookmark: '#F3CDA8', book: '#97D4F1', name: '灰蓝暮色' },
+  { logo: '#B9502B', text: '#8D2922', bookmark: '#FFA279', book: '#FFC5CD', name: '砖红盐系' },
+  { logo: '#145750', text: '#FCC96E', bookmark: '#212F3A', book: '#2D8A80', name: '翠绿流金' },
+  { logo: '#9B8BA6', text: '#E3B0B7', bookmark: '#2A1943', book: '#881C3C', name: '紫檀古韵' },
+  { logo: '#A85253', text: '#1C2C58', bookmark: '#CB7761', book: '#FFC4C2', name: '丁香月色' },
+];
+// 温柔活泼（indices 20-26，共7个）
+const SKIN_GENTLE = [
+  { logo: '#B4CCD2', text: '#F0DC84', bookmark: '#F7F7E0', book: '#79A3CE', name: '春日花园' },
+  { logo: '#3D7695', text: '#C85E3D', bookmark: '#DDB355', book: '#DFC7B4', name: '慵懒海洋' },
+  { logo: '#A4C2CA', text: '#B05553', bookmark: '#3B567F', book: '#CAA4A3', name: '复古小镇' },
+  { logo: '#95C3BE', text: '#DA6790', bookmark: '#AEBE6C', book: '#ECB4A4', name: '浪漫花墙' },
+  { logo: '#C5E8E0', text: '#6B5B95', bookmark: '#F7CAC9', book: '#92A8D1', name: '紫罗兰' },
+  { logo: '#FFE4C4', text: '#2F5D62', bookmark: '#FFE4B5', book: '#5E8C7B', name: '琥珀森林' },
+  { logo: '#B0C4DE', text: '#FFB6C1', bookmark: '#E6E6FA', book: '#DDA0DD', name: '薰衣草之恋' },
+];
+// 甜美清新（indices 27-32，共6个）
+const SKIN_SWEET = [
+  { logo: '#F9F4EA', text: '#8D6C63', bookmark: '#FCD3D5', book: '#CFE4DD', name: '薄荷曼波' },
+  { logo: '#B5DAE9', text: '#63BAD9', bookmark: '#CCE7D9', book: '#CAEBED', name: '瓦尔登湖' },
+  { logo: '#4663ac', text: '#f3dd87', bookmark: '#ee8984', book: '#79bfe0', name: '美式复古' },
+  { logo: '#B9D9EA', text: '#EFE4D4', bookmark: '#F8819B', book: '#F5C7C9', name: '先帝最爱' },
+  { logo: '#E4F6A9', text: '#FF82A2', bookmark: '#BDDE93', book: '#FED0D6', name: '青提芭乐' },
+  { logo: '#CADEC3', text: '#225DAB', bookmark: '#CBAF98', book: '#95B4E0', name: '椰风海岛' },
+  { logo: '#F1D996', text: '#779B84', bookmark: '#B69F8A', book: '#C8D4C0', name: '浮光跃金' },
+  { logo: '#C5863C', text: '#FAE593', bookmark: '#849C4D', book: '#FE8F29', name: '橘子汽水' },
+  { logo: '#EFE4D4', text: '#302B58', bookmark: '#9078AC', book: '#B6A9C8', name: '海盐葡萄' },
+];
+// 完整数组（供通用查表，indices 0-32）
+const BOOK_COLOR_SCHEMES = [...SKIN_CLASSIC, ...SKIN_FESTIVE, ...SKIN_GENTLE, ...SKIN_SWEET];
 
-// 12 color schemes: 书本logo, 文字, 书签, 书本
-const BOOK_COLOR_SCHEMES = [
-  { logo: '#9FE7E6', text: '#E8FBFF', bookmark: '#156B8C', book: '#052228' }, //高端经典配色
-  { logo: '#64A1C0', text: '#E7D2BF', bookmark: '#FF6357', book: '#2E2E2E' },
-  { logo: '#23A8A7', text: '#F46A6A', bookmark: '#053154', book: '#181818' },
-  { logo: '#FF6054', text: '#FFDCAC', bookmark: '#5B889F', book: '#292929' },
-  { logo: '#FCC96E', text: '#2E9C91', bookmark: '#136058', book: '#132432' },
+// 暴露 name 数组供 db.js 使用（避免硬编码重复）
+window._SKIN_CLASSIC_NAMES = SKIN_CLASSIC.map(s => s.name);
+window._SKIN_FESTIVE_NAMES = SKIN_FESTIVE.map(s => s.name);
+window._SKIN_GENTLE_NAMES  = SKIN_GENTLE.map(s  => s.name);
+window._SKIN_SWEET_NAMES   = SKIN_SWEET.map(s  => s.name);
 
-  { logo: '#053154', text: '#FFFFFF', bookmark: '#5A5750', book: '#F05654' }, //质感节日风
-  { logo: '#C7371D', text: '#FCDC93', bookmark: '#185A56', book: '#4D262B' },
-  { logo: '#F05654', text: '#D9AE84', bookmark: '#C0732F', book: '#200E02' },
-  { logo: '#D1A1BA', text: '#A6D4D6', bookmark: '#024B5E', book: '#841C3C' },
-  { logo: '#EC9B7A', text: '#F8C761', bookmark: '#203822', book: '#595182' },
-  { logo: '#A92A01', text: '#3E5626', bookmark: '#F4D376', book: '#F3CDA8' },
-  { logo: '#9B8037', text: '#9C2C21', bookmark: '#E4B0B7', book: '#FEC1AE' },
-  { logo: '#3A4B5B', text: '#061B3A', bookmark: '#F3CDA8', book: '#97D4F1' },
-  { logo: '#B9502B', text: '#8D2922', bookmark: '#FFA279', book: '#FFC5CD' },
-  { logo: '#145750', text: '#FCC96E', bookmark: '#212F3A', book: '#2D8A80' },
-  { logo: '#9B8BA6', text: '#E3B0B7', bookmark: '#2A1943', book: '#881C3C' },
-  { logo: '#A85253', text: '#1C2C58', bookmark: '#CB7761', book: '#FFC4C2' },
-
-  { logo: '#B4CCD2', text: '#F0DC84', bookmark: '#F7F7E0', book: '#79A3CE' }, //清新1
-  { logo: '#3D7695', text: '#C85E3D', bookmark: '#DDB355', book: '#DFC7B4' },
-  { logo: '#A4C2CA', text: '#B05553', bookmark: '#3B567F', book: '#CAA4A3' },
-  { logo: '#95C3BE', text: '#DA6790', bookmark: '#AEBE6C', book: '#ECB4A4' },
-
-  { logo: '#F9F4EA', text: '#8D6C63', bookmark: '#FCD3D5', book: '#CFE4DD' }, //清新2
-  { logo: '#B5DAE9', text: '#63BAD9', bookmark: '#CCE7D9', book: '#CAEBED' },
-  { logo: '#4663ac', text: '#f3dd87', bookmark: '#ee8984', book: '#79bfe0' },
-  { logo: '#B9D9EA', text: '#EFE4D4', bookmark: '#F8819B', book: '#F5C7C9' },
-  { logo: '#E4F6A9', text: '#FF82A2', bookmark: '#BDDE93', book: '#FED0D6' },
-  { logo: '#CADEC3', text: '#225DAB', bookmark: '#CBAF98', book: '#95B4E0' },
-  { logo: '#F1D996', text: '#779B84', bookmark: '#B69F8A', book: '#C8D4C0' },
-  { logo: '#C5863C', text: '#FAE593', bookmark: '#849C4D', book: '#FE8F29' },
-  { logo: '#EFE4D4', text: '#302B58', bookmark: '#9078AC', book: '#B6A9C8' },
-
-
+// 重新构建 SKIN_DISPLAY_NAMES（覆盖 db.js 加载时的空值）
+window.SKIN_DISPLAY_NAMES = [
+  ...window._SKIN_CLASSIC_NAMES,
+  ...window._SKIN_FESTIVE_NAMES,
+  ...window._SKIN_GENTLE_NAMES,
+  ...window._SKIN_SWEET_NAMES,
 ];
 
-const BOOKS_PER_PAGE = 8; // 2×4 grid
 
 function getBookmarkTextColor(bookmarkHex) {
   const r = parseInt(bookmarkHex.slice(1, 3), 16);
@@ -54,6 +75,7 @@ let t4DetailAllQuestions = [];
 let t4DetailQuestionsByType = {};
 let t4DetailCurrentIndex = 0;
 let t4DetailCollapsedTypes = {};
+let _t4DetailInitialized = false;
 
 const _t4WrongbookPage = {
   async render(container, params) {
@@ -69,6 +91,7 @@ const _t4WrongbookPage = {
   },
 
   async renderGrid(container) {
+    document.getElementById('app-content').classList.add('store-bg');
     const user = getCurrentUser();
     const books = await getDistinctWrongBanks(user.id);
 
@@ -77,58 +100,39 @@ const _t4WrongbookPage = {
       return;
     }
 
-    const totalPages = Math.ceil(books.length / BOOKS_PER_PAGE);
-    var currentPage = this._bookGridPage || 1;
-    if (currentPage > totalPages) currentPage = totalPages;
-    this._bookGridPage = currentPage;
-
-    var start = (currentPage - 1) * BOOKS_PER_PAGE;
-    var pageBooks = books.slice(start, start + BOOKS_PER_PAGE);
     var self = this;
 
     function renderBookCards() {
       var html = '';
-      for (var i = 0; i < pageBooks.length; i++) {
-        var b = pageBooks[i];
-        var scheme = BOOK_COLOR_SCHEMES[b.colorIndex != null ? b.colorIndex : (start + i) % BOOK_COLOR_SCHEMES.length];
+      for (var i = 0; i < books.length; i++) {
+        var b = books[i];
+        var scheme = BOOK_COLOR_SCHEMES[b.colorIndex != null ? b.colorIndex : i % BOOK_COLOR_SCHEMES.length];
         var bmText = getBookmarkTextColor(scheme.bookmark);
         html += '<div class="book-wrapper">' +
           '<div class="book-card" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + bmText + '" onclick="location.hash=\'#/t4/' + b.bankId + '\'">' +
             '<div class="book-logo"><i class="bi bi-book-fill"></i></div>' +
             '<div class="book-body">' +
               '<div class="book-name" style="font-family:\'SourceHanSansOLD-Heavy\',\'Source Han Sans OLD Heavy\',\'Noto Sans CJK SC\',sans-serif;font-weight:900">' + escapeHtml(b.bankName) + '</div>' +
-              '<div class="book-count">' + b.count + ' 道错题</div>' +
-            '</div>' +
+                          '</div>' +
             '<div class="book-bookmark"></div>' +
           '</div>' +
           '<div class="book-shelf"></div>' +
+          '<div class="book-label" onclick="t4OpenSkinPopup(this,' + b.bankId + ')" title="点击更换皮肤"><i class="bi bi-palette-fill"></i><span>' + escapeHtml(BOOK_COLOR_SCHEMES[b.colorIndex != null ? b.colorIndex : i % BOOK_COLOR_SCHEMES.length].name) + '</span></div>' +
         '</div>';
       }
       document.getElementById('t4BookGrid').innerHTML = html;
-
-      var pagEl = document.getElementById('t4BookPagination');
-      if (totalPages > 1) {
-        pagEl.innerHTML = '<button class="btn btn-sm btn-outline-secondary"' + (currentPage <= 1 ? ' disabled' : '') + ' onclick="_t4WrongbookPage.goBookPage(' + (currentPage - 1) + ')"><i class="bi bi-chevron-left"></i></button>' +
-          '<span class="mx-2 text-muted small">' + currentPage + ' / ' + totalPages + '</span>' +
-          '<button class="btn btn-sm btn-outline-secondary"' + (currentPage >= totalPages ? ' disabled' : '') + ' onclick="_t4WrongbookPage.goBookPage(' + (currentPage + 1) + ')"><i class="bi bi-chevron-right"></i></button>';
-      } else {
-        pagEl.innerHTML = '';
-      }
     }
 
-    container.innerHTML = '<h4 class="mb-3 flex-shrink-0" style="font-size:1.5rem"><i class="bi bi-book me-2"></i>错题集</h4>' +
-      '<div class="d-flex flex-column flex-grow-1 overflow-hidden" style="gap:0;padding-bottom:2.5rem;box-sizing:border-box">' +
-        '<div class="book-grid" id="t4BookGrid"></div>' +
-        '<div class="text-center flex-shrink-0" id="t4BookPagination"></div>' +
+    container.innerHTML = '<div class="content-narrow-4-5" style="display:flex;flex-direction:column;gap:2rem;padding:0.75rem 0 1.5rem">' +
+        '<h4 class="flex-shrink-0" style="font-size:1.5rem;margin:0;color:#1a1a1a"><i class="bi bi-book me-2"></i>错题集</h4>' +
+        '<div class="d-flex flex-column flex-grow-1" style="gap:0;padding-bottom:2.5rem;box-sizing:border-box">' +
+          '<div class="book-grid" id="t4BookGrid"></div>' +
+        '</div>' +
       '</div>';
 
     renderBookCards();
   },
 
-  goBookPage(page) {
-    _t4WrongbookPage._bookGridPage = page;
-    _t4WrongbookPage.renderGrid(document.getElementById('app-content'));
-  },
 
   async renderDetail(container, params) {
     const bankId = parseInt(params.bankId);
@@ -155,6 +159,7 @@ const _t4WrongbookPage = {
       t4DetailQuestionsByType[t] = wrongQs.filter(q => q.type === t);
     }
     t4DetailCurrentIndex = 0;
+    _t4DetailInitialized = false;
 
     container.innerHTML = `
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -167,7 +172,7 @@ const _t4WrongbookPage = {
           <button class="btn btn-primary" onclick="t4OpenReviewModal(${bankId})"><i class="bi bi-lightbulb me-1"></i>错题扫盲</button>
         </div>
       </div>
-      <div class="exam-layout">
+      <div class="exam-layout exam-layout--no-scroll">
         <div class="exam-sidebar-col">
           <div class="exam-sidebar" id="t4DetailSidebar"></div>
         </div>
@@ -178,6 +183,7 @@ const _t4WrongbookPage = {
         </div>
       </div>`;
 
+    this.initT4DetailSidebar();
     this.renderT4DetailSidebar(document.getElementById('t4DetailSidebar'));
     this.showT4DetailQuestion();
 
@@ -209,6 +215,10 @@ const _t4WrongbookPage = {
   showT4DetailQuestion() {
     const area = document.getElementById('t4DetailMain');
     if (!area) return;
+
+    // Save scroll position before innerHTML replacement
+    const mainScroll = area.closest('.exam-main-scroll');
+    const savedScroll = mainScroll ? mainScroll.scrollTop : 0;
 
     const total = t4DetailAllQuestions.length;
     if (total === 0) {
@@ -251,9 +261,9 @@ const _t4WrongbookPage = {
         sessionNumber: wq.number,
       })}
       <div class="d-flex justify-content-between align-items-center mt-3">
-        ${isFirst ? '<span></span>' : '<button class="btn btn-outline-primary" id="t4DetailPrevBtn"><i class="bi bi-chevron-left"></i> 上一题</button>'}
+        <button class="btn btn-outline-primary" id="t4DetailPrevBtn" ${isFirst ? 'disabled' : ''}><i class="bi bi-chevron-left"></i> 上一题</button>
         <span class="text-muted small">${t4DetailCurrentIndex + 1} / ${total}</span>
-        ${isLast ? '<span></span>' : '<button class="btn btn-outline-primary" id="t4DetailNextBtn">下一题 <i class="bi bi-chevron-right"></i></button>'}
+        <button class="btn btn-outline-primary" id="t4DetailNextBtn" ${isLast ? 'disabled' : ''}>下一题 <i class="bi bi-chevron-right"></i></button>
       </div>
       <div class="text-center text-muted mt-2" style="font-size:0.8rem"><i class="bi bi-keyboard me-1"></i>键盘 ← → 键可切换题目</div>`;
 
@@ -319,6 +329,31 @@ const _t4WrongbookPage = {
     // Update sidebar highlight
     const sidebar = document.getElementById('t4DetailSidebar');
     if (sidebar) _t4WrongbookPage.renderT4DetailSidebar(sidebar);
+
+    // Restore scroll position after innerHTML replacement
+    if (mainScroll) mainScroll.scrollTop = savedScroll;
+  },
+
+  // Initialize sidebar collapsed state once
+  initT4DetailSidebar() {
+    if (_t4DetailInitialized) return;
+
+    const collapsedTypes = {};
+    for (const [qtype, questions] of Object.entries(t4DetailQuestionsByType)) {
+      collapsedTypes[qtype] = true;
+    }
+    const allQuestions = Object.values(t4DetailQuestionsByType).flat();
+    if (allQuestions.length > 0) {
+      const firstQ = allQuestions[0];
+      for (const [qtype, questions] of Object.entries(t4DetailQuestionsByType)) {
+        if (questions.some(q => q.questionId === firstQ.questionId)) {
+          delete collapsedTypes[qtype];
+          break;
+        }
+      }
+    }
+    t4DetailCollapsedTypes = collapsedTypes;
+    _t4DetailInitialized = true;
   },
 
   // Render sidebar with type-grouped question circles for quick navigation
@@ -340,7 +375,7 @@ const _t4WrongbookPage = {
       delete t4DetailCollapsedTypes[currentWq.type];
     }
 
-    let html = '<h6 class="mb-3">错题导航</h6>';
+    let html = '';
 
     for (const [qtype, questions] of Object.entries(questionsByType)) {
       if (!questions || questions.length === 0) continue;
@@ -361,7 +396,7 @@ const _t4WrongbookPage = {
     }
 
 
-    container.innerHTML = html;
+    container.innerHTML = `<h6 class="mb-3">错题导航</h6><div class="exam-sidebar-questions">${html}</div>`;
 
     // Circle click handlers — navigate to the clicked question
     container.querySelectorAll('.question-circle').forEach(circle => {
@@ -494,6 +529,7 @@ const _t4WrongbookPage = {
     const wq = engine.group[engine.groupIndex];
     const idx = engine.groupIndex;
     const isResult = engine.showingResult;
+    const type = wq.type;
 
     let answerHtml = '';
     if (isResult) {
@@ -501,7 +537,6 @@ const _t4WrongbookPage = {
       const userAnswer = engine._lastUserAnswer;
       const isCorrect = engine._lastCorrect;
       const correctAnswer = wq.answer;
-      const type = wq.type;
 
       // Build result display
       answerHtml += `<div class="alert ${isCorrect ? 'alert-success' : 'alert-danger'} py-2 text-center">${isCorrect ? '<i class="bi bi-check-circle me-1"></i>回答正确！' : '<i class="bi bi-x-circle me-1"></i>回答错误'}</div>`;
@@ -519,9 +554,12 @@ const _t4WrongbookPage = {
     } else {
       // Interactive answer input
       answerHtml += this.renderReviewAnswerInput(wq, idx, false, false, null);
-      answerHtml += `<div class="text-center mt-3">
-        <button class="btn btn-success btn-lg" id="t4SubmitBtn" onclick="t4SubmitAnswer()"><i class="bi bi-check-lg me-1"></i>提交答案</button>
-      </div>`;
+      // Only show submit button for multi/fill/essay; single/tf auto-submit on click
+      if (type === 'multi' || type === 'fill' || type === 'essay') {
+        answerHtml += `<div class="text-center mt-3">
+          <button class="btn btn-success btn-lg" id="t4SubmitBtn" onclick="t4SubmitAnswer()"><i class="bi bi-check-lg me-1"></i>提交答案</button>
+        </div>`;
+      }
     }
 
     area.innerHTML = `
@@ -538,7 +576,7 @@ const _t4WrongbookPage = {
                 <div class="streak-light ${wq.correctStreak >= 2 ? 'lit' : ''}"></div>
                 <div class="streak-light ${wq.correctStreak >= 3 ? 'lit' : ''}"></div>
               </div>
-              <button class="btn btn-sm btn-outline-danger btn-icon" onclick="t4SkipQuestion(${idx})" title="暂时跳过"><i class="bi bi-skip-forward"></i></button>
+              <button class="btn btn-sm btn-outline-primary btn-icon" onclick="t4SkipQuestion(${idx})" title="暂时跳过"><i class="bi bi-skip-forward"></i></button>
             </div>
           </div>
           <div class="question-content mb-3 fs-5">${escapeHtml(wq.content)}</div>
@@ -554,6 +592,8 @@ const _t4WrongbookPage = {
           item.addEventListener('click', () => {
             area.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
             item.classList.add('selected');
+            // Auto-submit for single/tf
+            t4SubmitAnswer();
           });
         });
       } else if (type === 'multi') {
@@ -641,6 +681,8 @@ const _t4WrongbookPage = {
   },
 
   async destroy() {
+    document.getElementById('app-content').classList.remove('store-bg');
+    _t4DetailInitialized = false;
     t4ReviewEngine = null;
     t4DetailAllQuestions = [];
     t4DetailQuestionsByType = {};
@@ -734,7 +776,11 @@ async function t4SubmitAnswer() {
         }
       }
       engine.showingResult = false;  // Reset for the replacement question
-      showToast('已掌握！连续正确3次', 'success');
+      // Award 1 coin for mastering
+      const user = getCurrentUser();
+      await updateUserCoins(user.id, 1);
+      emit('coins:updated');
+      showToast('已掌握！连续正确3次，+1 硬币', 'success');
     } else {
       showToast(`正确！还需连续正确 ${3 - wq.correctStreak} 次`, 'success');
     }
@@ -784,4 +830,86 @@ function t4SkipQuestion(idx) {
   engine.groupIndex = (engine.groupIndex + 1) % engine.group.length;
   _t4WrongbookPage.updateReviewStatusBar();
   _t4WrongbookPage.renderCurrentQuestion();
+}
+
+// Skin popup for wrongbook books
+let _t4SkinPopupActive = null;
+
+async function t4OpenSkinPopup(btn, bankId) {
+  // Close any existing popup
+  t4CloseSkinPopup();
+
+  const user = getCurrentUser();
+  const ownedSkins = await getUserOwnedSkins(user.id);
+  const currentSkin = await getBankSkin(user.id, bankId);
+
+  let itemsHtml = '';
+  for (const idx of ownedSkins) {
+    const scheme = BOOK_COLOR_SCHEMES[idx];
+    const name = window.SKIN_DISPLAY_NAMES[idx];
+    const active = idx === currentSkin ? ' active' : '';
+    itemsHtml += `
+      <div class="skin-popup-item${active}" data-idx="${idx}" onclick="t4ApplySkin(${bankId},${idx})" title="${name}">
+        <div class="skin-popup-book" style="--book:${scheme.book};--bookmark:${scheme.bookmark}">
+          <div class="skin-popup-bookmark"></div>
+        </div>
+        <div class="skin-popup-name">${name}</div>
+      </div>`;
+  }
+
+  // Build popup and position it
+  const popup = document.createElement('div');
+  popup.className = 'skin-popup popup-right';
+  popup.id = 't4SkinPopup';
+  popup.innerHTML = `
+    <div class="skin-popup-title">
+      <span>选择皮肤</span>
+      <button class="skin-popup-close" onclick="t4CloseSkinPopup()"><i class="bi bi-x"></i></button>
+    </div>
+    <div class="skin-popup-grid">${itemsHtml}</div>
+  `;
+
+  // Insert after the button's wrapper
+  btn.closest('.book-wrapper').appendChild(popup);
+
+  // Position adaptation: if popup goes off right edge, flip to left
+  requestAnimationFrame(() => {
+    const rect = popup.getBoundingClientRect();
+    const vw = window.innerWidth;
+    if (rect.right > vw - 10) {
+      popup.classList.remove('popup-right');
+      popup.classList.add('popup-left');
+    }
+    popup.classList.add('show');
+  });
+
+  _t4SkinPopupActive = popup;
+
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('click', t4CloseSkinPopupOutside, { once: true });
+  }, 10);
+}
+
+function t4CloseSkinPopup() {
+  const popup = document.getElementById('t4SkinPopup');
+  if (popup) popup.remove();
+  _t4SkinPopupActive = null;
+}
+
+function t4CloseSkinPopupOutside(e) {
+  const popup = document.getElementById('t4SkinPopup');
+  if (popup && !popup.contains(e.target) && !e.target.closest('.skin-select-btn')) {
+    t4CloseSkinPopup();
+  }
+}
+
+async function t4ApplySkin(bankId, colorIndex) {
+  const user = getCurrentUser();
+  await setBankSkin(user.id, bankId, colorIndex);
+  t4CloseSkinPopup();
+  showToast('皮肤已更换', 'success');
+
+  // Refresh the grid to show new colors
+  _t4WrongbookPage.renderGrid(document.getElementById('app-content'));
 }

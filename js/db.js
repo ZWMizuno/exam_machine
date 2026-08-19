@@ -2,14 +2,15 @@
 
 const db = new Dexie("ExamMachineDB");
 
-db.version(1).stores({
+db.version(2).stores({
   users:          "++id, &username",
   banks:          "++id, name",
   questions:      "++id, bankId, [bankId+type], type",
   examModes:      "++id, bankId",
   examSessions:   "++id, userId",
   history:        "++id, userId, bankId, createdAt",
-  wrongQuestions: "++id, [userId+bankId], userId, bankId, questionId"
+  wrongQuestions: "++id, [userId+bankId], userId, bankId, questionId",
+  userSkins:      "++id, userId, colorIndex"
 });
 
 // === Users ===
@@ -134,12 +135,13 @@ async function getUsedColorIndices(userId) {
 }
 
 async function allocColorIndex(userId) {
-  const used = await getUsedColorIndices(userId);
-  const available = [];
-  for (let i = 0; i < 28; i++) {
-    if (!used.includes(i)) available.push(i);
+  const used = await getUsedColorIndices(userId);        // 该用户已用作错题本封面的颜色
+  const owned = await getUserOwnedSkins(userId);          // 该用户拥有的全部皮肤
+  const available = owned.filter(c => !used.includes(c)); // 取交集：拥有且未被占用
+  if (available.length === 0) {
+    // 全部拥有皮肤都已被占用，从已占用中随机选一个（退化情况）
+    return used[Math.floor(Math.random() * used.length)];
   }
-  if (available.length === 0) available.push(used[0]);
   return available[Math.floor(Math.random() * available.length)];
 }
 
@@ -148,7 +150,172 @@ async function seedDefaultAdmin() {
   const count = await db.users.count();
   if (count === 0) {
     const passwordHash = await hashPassword("admin123");
-    await createUser({ username: "admin", passwordHash, role: "admin", createdAt: new Date().toISOString() });
+    await createUser({ username: "admin", passwordHash, role: "admin", createdAt: new Date().toISOString(), coins: 0 });
     console.log("Default admin created: admin/admin123");
   }
 }
+
+// === User Coins ===
+async function getUserCoins(userId) {
+  const user = await db.users.get(userId);
+  return user?.coins ?? 0;
+}
+async function updateUserCoins(userId, delta) {
+  return await db.transaction('rw', db.users, async () => {
+    const user = await db.users.get(userId);
+    if (!user) return null;
+    const newCoins = Math.max(0, (user.coins ?? 0) + delta);
+    await db.users.update(userId, { coins: newCoins });
+    return newCoins;
+  });
+}
+
+// === User Skins ===
+async function addUserSkin(userId, colorIndex) {
+  const existing = await db.userSkins.where({ userId, colorIndex }).first();
+  if (existing) return existing.id;
+  return await db.userSkins.add({ userId, colorIndex });
+}
+async function getUserOwnedSkins(userId) {
+  const skins = await db.userSkins.where('userId').equals(userId).toArray();
+  return skins.map(s => s.colorIndex);
+}
+async function hasUserSkin(userId, colorIndex) {
+  const existing = await db.userSkins.where({ userId, colorIndex }).first();
+  return !!existing;
+}
+
+// === Persistent Storage Request ===
+async function requestPersistentStorage() {
+  if (navigator.storage && navigator.storage.persist) {
+    const isPersisted = await navigator.storage.persisted();
+    if (!isPersisted) {
+      const granted = await navigator.storage.persist();
+      console.log('持久化存储:', granted ? '已授权' : '未授权');
+    }
+  }
+}
+
+// === Export / Import All Data ===
+async function exportAllData() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    users: await db.users.toArray(),
+    banks: await db.banks.toArray(),
+    questions: await db.questions.toArray(),
+    examModes: await db.examModes.toArray(),
+    examSessions: await db.examSessions.toArray(),
+    history: await db.history.toArray(),
+    wrongQuestions: await db.wrongQuestions.toArray(),
+    userSkins: await db.userSkins.toArray(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `考试机备份_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('数据已导出', 'success');
+}
+
+async function importAllData(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.version || !data.users) {
+          showToast('文件格式无效', 'error');
+          reject(new Error('Invalid format'));
+          return;
+        }
+        await db.transaction('rw',
+          [db.users, db.banks, db.questions, db.examModes, db.examSessions, db.history, db.wrongQuestions, db.userSkins],
+          async () => {
+            await db.users.clear();
+            await db.banks.clear();
+            await db.questions.clear();
+            await db.examModes.clear();
+            await db.examSessions.clear();
+            await db.history.clear();
+            await db.wrongQuestions.clear();
+            await db.userSkins.clear();
+            if (data.users.length) await db.users.bulkAdd(data.users);
+            if (data.banks.length) await db.banks.bulkAdd(data.banks);
+            if (data.questions.length) await db.questions.bulkAdd(data.questions);
+            if (data.examModes.length) await db.examModes.bulkAdd(data.examModes);
+            if (data.examSessions.length) await db.examSessions.bulkAdd(data.examSessions);
+            if (data.history.length) await db.history.bulkAdd(data.history);
+            if (data.wrongQuestions.length) await db.wrongQuestions.bulkAdd(data.wrongQuestions);
+            if (data.userSkins.length) await db.userSkins.bulkAdd(data.userSkins);
+          }
+        );
+        showToast('数据已导入，请刷新页面', 'success');
+        resolve();
+      } catch (err) {
+        showToast('导入失败：' + err.message, 'error');
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('File read error'));
+    reader.readAsText(file);
+  });
+}
+
+// === Initialize default owned skins for a new user (Group 0: 高端经典，共5个) ===
+async function initUserDefaultSkins(userId) {
+  const defaultSkins = [0, 1, 2, 3, 4]; // 高端经典5款皮肤 indices 0-4
+  await db.transaction('rw', db.userSkins, async () => {
+    for (const idx of defaultSkins) {
+      await addUserSkin(userId, idx);
+    }
+  });
+}
+
+// === Bank skin assignment ===
+async function getBankSkin(userId, bankId) {
+  const wQs = await getWrongQuestionsByUserAndBank(userId, bankId);
+  if (!wQs || wQs.length === 0) return null;
+  return wQs[0].colorIndex ?? null;
+}
+async function setBankSkin(userId, bankId, colorIndex) {
+  // Update all wrong questions for this bank to use the new skin color
+  const wQs = await getWrongQuestionsByUserAndBank(userId, bankId);
+  await db.transaction('rw', db.wrongQuestions, async () => {
+    for (const wq of wQs) {
+      await db.wrongQuestions.update(wq.id, { colorIndex });
+    }
+  });
+}
+
+// === Skin constants (shared across pages) ===
+// 从 t4-wrongbook.js 暴露的 name 数组读取（保持单一数据源）
+window.SKIN_GROUP_NAMES = ['高端经典', '质感节日风', '温柔活泼', '甜美清新'];
+window.SKIN_PRICES = [0, 15, 20, 25];
+
+window.SKIN_DISPLAY_NAMES = [
+  ...(window._SKIN_CLASSIC_NAMES || []),
+  ...(window._SKIN_FESTIVE_NAMES || []),
+  ...(window._SKIN_GENTLE_NAMES  || []),
+  ...(window._SKIN_SWEET_NAMES  || []),
+];
+
+window.getSkinGroup = function(colorIndex) {
+  const counts = [
+    (window._SKIN_CLASSIC_NAMES || []).length,
+    (window._SKIN_FESTIVE_NAMES || []).length,
+    (window._SKIN_GENTLE_NAMES  || []).length,
+    (window._SKIN_SWEET_NAMES  || []).length,
+  ];
+  let offset = 0;
+  for (let g = 0; g < counts.length; g++) {
+    if (colorIndex < offset + counts[g]) return g;
+    offset += counts[g];
+  }
+  return 3;
+};
+window.getSkinPrice = function(colorIndex) {
+  return window.SKIN_PRICES[window.getSkinGroup(colorIndex)];
+};

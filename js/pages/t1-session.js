@@ -1,22 +1,40 @@
 // === T1 Exam/Practice Session (Shared Answering UI) ===
 
-let sessionState = null;
-let sessionCurrentIndex = 0;
-let sessionQuestionsByType = {};
-let sessionAllQuestions = [];
-
 const _t1SessionPage = {
   async render(container, params) {
+    this._examExpired = false;
     const user = getCurrentUser();
+
     // Try to restore existing session, or get from state
     let session = getState().currentExam;
     if (!session) {
-      session = await getSessionByUser(user.id);
+      // Check both exam session (userId) and practice session (userId_practice)
+      let examSession = await getSessionByUser(user.id);
+      let pracSession = await getSessionByUser(user.id + '_practice');
+      // Prefer whichever is newer / has more recent startTime
+      if (examSession && pracSession) {
+        session = new Date(examSession.startTime) > new Date(pracSession.startTime) ? examSession : pracSession;
+      } else {
+        session = examSession || pracSession;
+      }
       if (session && !session.submitted) {
+        const storedType = sessionStorage.getItem('exam_active');
         // Detected a stored session — check if it's from a refresh (abandoned)
-        if (sessionStorage.getItem('exam_active') === 'true') {
+        if (storedType === 'exam' || storedType === 'practice') {
           sessionStorage.removeItem('exam_active');
-          await deleteSessionByUser(user.id);
+          // If stored type doesn't match recovered session type, delete both
+          if (storedType === 'exam' && pracSession) {
+            await deleteSessionByUser(user.id + '_practice');
+          }
+          if (storedType === 'practice' && examSession) {
+            await deleteSessionByUser(user.id);
+          }
+          if (storedType === 'exam' && examSession) {
+            await deleteSessionByUser(user.id);
+          }
+          if (storedType === 'practice' && pracSession) {
+            await deleteSessionByUser(user.id + '_practice');
+          }
           setState({ currentExam: null });
           showToast('已退出考试/练习', 'info');
           location.hash = '#/t1';
@@ -31,25 +49,26 @@ const _t1SessionPage = {
       setState({ currentExam: session });
     }
 
-    // Set flag so refresh will be detected as abandoned
-    sessionStorage.setItem('exam_active', 'true');
-
-    sessionState = session;
-    sessionAllQuestions = session.questions;
-    sessionCurrentIndex = 0;
+    // Initialize instance state
+    this._sessionState = session;
+    this._sessionAllQuestions = session.questions;
+    this._sessionCurrentIndex = 0;
 
     // Build questionsByType map
-    sessionQuestionsByType = {};
+    this._sessionQuestionsByType = {};
     for (const t of QUESTION_TYPES) {
-      sessionQuestionsByType[t] = sessionAllQuestions.filter(q => q.type === t);
+      this._sessionQuestionsByType[t] = this._sessionAllQuestions.filter(q => q.type === t);
     }
 
     // Find first unanswered question
-    const firstUnanswered = sessionAllQuestions.findIndex(q => {
+    const firstUnanswered = this._sessionAllQuestions.findIndex(q => {
       const ua = session.userAnswers[q.questionId];
       return ua === undefined || ua === null || ua === '';
     });
-    if (firstUnanswered >= 0) sessionCurrentIndex = firstUnanswered;
+    if (firstUnanswered >= 0) this._sessionCurrentIndex = firstUnanswered;
+
+    // Set type hint in sessionStorage so refresh recovery knows the session type
+    sessionStorage.setItem('exam_active', session.type);
 
     this.renderSessionUI(container);
     this.setupTimer();
@@ -64,17 +83,17 @@ const _t1SessionPage = {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (sessionCurrentIndex > 0) { sessionCurrentIndex--; _t1SessionPage.showQuestion(); }
+        if (this._sessionCurrentIndex > 0) { this._sessionCurrentIndex--; _t1SessionPage.showQuestion(); }
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        if (sessionCurrentIndex < sessionAllQuestions.length - 1) { sessionCurrentIndex++; _t1SessionPage.showQuestion(); }
+        if (this._sessionCurrentIndex < this._sessionAllQuestions.length - 1) { this._sessionCurrentIndex++; _t1SessionPage.showQuestion(); }
       }
     };
     document.addEventListener('keydown', this._t1KeyHandler);
   },
 
   renderSessionUI(container) {
-    const isExam = sessionState.type === 'exam';
+    const isExam = this._sessionState.type === 'exam';
     container.innerHTML = `
       <div class="exam-layout">
         <div class="exam-sidebar-col">
@@ -85,81 +104,134 @@ const _t1SessionPage = {
           <div class="exam-main-scroll">
             <div class="question-area" id="questionArea"></div>
           </div>
-          <div class="d-flex justify-content-between align-items-center mt-3">
-            <div>
-              <button class="btn btn-outline-primary me-2" id="btnPrev" onclick="_t1SessionPage.navPrev()"><i class="bi bi-chevron-left"></i> 上一题</button>
+          <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-outline-primary" id="btnPrev" onclick="_t1SessionPage.navPrev()"><i class="bi bi-chevron-left"></i> 上一题</button>
               <button class="btn btn-outline-primary" id="btnNext" onclick="_t1SessionPage.navNext()">下一题 <i class="bi bi-chevron-right"></i></button>
+              <span class="text-muted" style="font-size:0.8rem"><i class="bi bi-keyboard me-1"></i>键盘 ← → 键可切换题目</span>
             </div>
-            <button class="btn btn-danger" id="btnEnd" onclick="_t1SessionPage.endSession()"><i class="bi bi-stop-circle me-1"></i>结束${isExam ? '考试' : '练习'}</button>
-            <button class="btn btn-success btn-lg" id="btnSubmit" onclick="_t1SessionPage.submitSession()"><i class="bi bi-check-lg me-1"></i>提交试卷</button>
+            <div class="d-flex gap-2">
+              <button class="btn btn-danger btn-lg" id="btnEnd" onclick="_t1SessionPage.endSession()"><i class="bi bi-stop-circle me-1"></i>结束${isExam ? '考试' : '练习'}</button>
+              <button class="btn btn-success btn-lg" id="btnSubmit" onclick="_t1SessionPage.submitSession()"><i class="bi bi-check-lg me-1"></i>提交试卷</button>
+            </div>
           </div>
         </div>
       </div>`;
 
-    // Sidebar navigation callback
-    window._onSidebarNavigate = (qid) => {
-      const idx = sessionAllQuestions.findIndex(q => q.questionId === qid);
-      if (idx >= 0) { sessionCurrentIndex = idx; _t1SessionPage.showQuestion(); }
+    // Store callbacks on this object (not window) for clean lifecycle
+    this._onSidebarNavigate = (qid) => {
+      const idx = this._sessionAllQuestions.findIndex(q => q.questionId === qid);
+      if (idx >= 0) { this._sessionCurrentIndex = idx; _t1SessionPage.showQuestion(); }
     };
 
-    // Instant feedback toggle callback
-    window._onFeedbackToggle = (checked) => {
-      sessionState.instantFeedback = checked;
+    this._onFeedbackToggle = (checked) => {
+      this._sessionState.instantFeedback = checked;
+      const timerToggle = document.getElementById('instantFeedbackToggleTimer');
+      if (timerToggle) timerToggle.checked = checked;
       updateSidebarFeedback(checked);
       _t1SessionPage.renderSidebar();
       _t1SessionPage.showQuestion();
     };
 
+    // Init sidebar state once for this session (resets flag so first render is full DOM).
+    // Subsequent showQuestion() → renderSidebar() calls go through the incremental path,
+    // preserving sidebar scroll position.
+    initSidebar(
+      this._sessionQuestionsByType,
+      this._sessionState.userAnswers,
+      this._sessionState.type,
+      this._sessionState.instantFeedback
+    );
     this.renderSidebar();
   },
 
   renderSidebar() {
     const sidebar = document.getElementById('examSidebar');
     if (!sidebar) return;
-    initSidebar(sessionQuestionsByType, sessionState.userAnswers, sessionState.type, sessionState.instantFeedback);
-    renderSidebar(sidebar, sessionAllQuestions[sessionCurrentIndex]?.questionId);
+    // Do NOT call initSidebar() here — it's only called once per session from
+    // renderSessionUI(). Calling it here would reset _sidebarInitialized and force
+    // a full DOM rebuild on every question switch, destroying sidebar scroll position.
+    renderSidebar(
+      sidebar,
+      this._sessionAllQuestions[this._sessionCurrentIndex]?.questionId,
+      { onNavigate: this._onSidebarNavigate, onFeedbackToggle: this._onFeedbackToggle }
+    );
   },
 
   setupTimer() {
     const timerBar = document.getElementById('examTimerBar');
     if (!timerBar) return;
 
-    const isExam = sessionState.type === 'exam';
+    const isExam = this._sessionState.type === 'exam';
+
+    // Store handler reference so it can be removed in destroy()
+    this._toggleChangeHandler = (e) => {
+      const id = e.target.id;
+      if (id === 'instantFeedbackToggle') {
+        this._sessionState.instantFeedback = e.target.checked;
+        const timerToggle = document.getElementById('instantFeedbackToggleTimer');
+        if (timerToggle) timerToggle.checked = e.target.checked;
+        updateSidebarFeedback(e.target.checked);
+        this.renderSidebar();
+        this.showQuestion();
+      } else if (id === 'instantFeedbackToggleTimer') {
+        this._sessionState.instantFeedback = e.target.checked;
+        const sidebarToggle = document.getElementById('instantFeedbackToggle');
+        if (sidebarToggle) sidebarToggle.checked = e.target.checked;
+        updateSidebarFeedback(e.target.checked);
+        this.renderSidebar();
+        this.showQuestion();
+      }
+    };
+
+    // Initial render of timer bar (only once, not on every tick)
+    timerBar.innerHTML = renderTimerBar(
+      isExam ? this._sessionState.durationSeconds - (this._sessionState.elapsedSeconds || 0) : (this._sessionState.elapsedSeconds || 0),
+      this._sessionState.type,
+      this._sessionState.instantFeedback
+    );
+
+    document.addEventListener('change', this._toggleChangeHandler);
 
     if (isExam) {
-      const elapsed = sessionState.elapsedSeconds || 0;
+      const elapsed = this._sessionState.elapsedSeconds || 0;
       startExamTimer(
-        sessionState.durationSeconds,
-        (remaining) => { timerBar.innerHTML = renderTimerBar(remaining, 'exam'); },
+        this._sessionState.durationSeconds,
+        (remaining) => {
+          const timerDisplay = document.getElementById('examTimerDisplay');
+          if (timerDisplay) timerDisplay.textContent = formatTime(remaining);
+        },
         () => {
+          _t1SessionPage._examExpired = true;
           showToast('考试时间到，系统将自动提交', 'warning');
-          setTimeout(() => _t1SessionPage.submitSession(), 1000);
+          _t1SessionPage.submitSession(true);
         },
         elapsed
       );
     } else {
-      startPracticeTimer((elapsed) => { timerBar.innerHTML = renderTimerBar(elapsed, 'practice'); });
+      startPracticeTimer((elapsed) => {
+        const timerDisplay = document.getElementById('examTimerDisplay');
+        if (timerDisplay) {
+          timerDisplay.textContent = formatTime(elapsed);
+        }
+      });
     }
   },
 
   showQuestion() {
-    if (sessionAllQuestions.length === 0) return;
-    const idx = sessionCurrentIndex;
-    const q = sessionAllQuestions[idx];
+    if (this._sessionAllQuestions.length === 0) return;
+    const idx = this._sessionCurrentIndex;
+    const q = this._sessionAllQuestions[idx];
 
     const area = document.getElementById('questionArea');
     if (!area) return;
 
-    const userAnswer = sessionState.userAnswers[q.questionId];
-    const isExam = sessionState.type === 'exam';
+    const userAnswer = this._sessionState.userAnswers[q.questionId];
+    const isExam = this._sessionState.type === 'exam';
 
     area.innerHTML = `
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <span class="text-muted">${idx + 1} / ${sessionAllQuestions.length}</span>
-        ${!isExam ? `<div class="form-check form-switch d-inline-block">
-          <input class="form-check-input" type="checkbox" id="instantFeedbackInline" ${sessionState.instantFeedback ? 'checked' : ''}>
-          <label class="form-check-label small" for="instantFeedbackInline">即时纠错</label>
-        </div>` : ''}
+        <span class="text-muted">${idx + 1} / ${this._sessionAllQuestions.length}</span>
       </div>
       ${renderQuestion({
         ...q,
@@ -172,8 +244,7 @@ const _t1SessionPage = {
         instantFeedback: false,
         correctStreak: -1,
         sessionNumber: q.sessionNumber
-      })}
-      <div class="text-center text-muted mt-2" style="font-size:0.8rem"><i class="bi bi-keyboard me-1"></i>键盘 ← → 键可切换题目</div>`;
+      })}`;
 
     // Option click handlers
     if (q.type === 'single' || q.type === 'multi' || q.type === 'tf') {
@@ -185,10 +256,10 @@ const _t1SessionPage = {
             item.classList.add('selected');
             this.saveAnswer(q.questionId, item.dataset.value);
             // Auto-advance after brief delay (guard against rapid clicks)
-            if (!autoAdvancePending && sessionCurrentIndex < sessionAllQuestions.length - 1) {
+            if (!autoAdvancePending && this._sessionCurrentIndex < this._sessionAllQuestions.length - 1) {
               autoAdvancePending = true;
               setTimeout(() => {
-                sessionCurrentIndex++;
+                this._sessionCurrentIndex++;
                 _t1SessionPage.showQuestion();
               }, 200);
             }
@@ -215,27 +286,16 @@ const _t1SessionPage = {
       });
     });
 
-    // Inline feedback toggle
-    const inlineToggle = document.getElementById('instantFeedbackInline');
-    if (inlineToggle) {
-      inlineToggle.addEventListener('change', () => {
-        sessionState.instantFeedback = inlineToggle.checked;
-        updateSidebarFeedback(inlineToggle.checked);
-        this.renderSidebar();
-        this.showQuestion();
-      });
-    }
-
     // Update nav buttons
     document.getElementById('btnPrev').disabled = idx === 0;
-    document.getElementById('btnNext').disabled = idx === sessionAllQuestions.length - 1;
+    document.getElementById('btnNext').disabled = idx === this._sessionAllQuestions.length - 1;
 
     this.renderSidebar();
   },
 
   saveAnswer(questionId, value) {
-    sessionState.userAnswers[questionId] = value;
-    updateSidebarAnswers(sessionState.userAnswers);
+    this._sessionState.userAnswers[questionId] = value;
+    updateSidebarAnswers(this._sessionState.userAnswers);
     this.renderSidebar();
     // Persist to DB (debounced)
     this.debouncedSave();
@@ -245,60 +305,66 @@ const _t1SessionPage = {
   debouncedSave() {
     if (this._saveTimeout) clearTimeout(this._saveTimeout);
     this._saveTimeout = setTimeout(async () => {
-      await saveSession(sessionState);
+      await saveSession(this._sessionState);
     }, 500);
   },
 
   navPrev() {
-    if (sessionCurrentIndex > 0) { sessionCurrentIndex--; this.showQuestion(); }
+    if (this._sessionCurrentIndex > 0) { this._sessionCurrentIndex--; this.showQuestion(); }
   },
 
   navNext() {
-    if (sessionCurrentIndex < sessionAllQuestions.length - 1) { sessionCurrentIndex++; this.showQuestion(); }
+    if (this._sessionCurrentIndex < this._sessionAllQuestions.length - 1) { this._sessionCurrentIndex++; this.showQuestion(); }
   },
 
-  async submitSession() {
-    const unanswered = sessionAllQuestions.filter(q => {
-      const ua = sessionState.userAnswers[q.questionId];
-      return ua === undefined || ua === null || ua === '';
-    });
+  async submitSession(isAutoSubmit = false) {
+    // Prevent manual submit after timer expired
+    if (!isAutoSubmit && this._examExpired) return;
 
-    let message = '确认提交试卷吗？';
-    if (unanswered.length > 0) {
-      message += `\n\n⚠ 还有 ${unanswered.length} 道题未作答：\n${unanswered.map(q => `#${q.sessionNumber} ${TYPE_LABELS_SHORT[q.type]}`).slice(0, 10).join('、')}${unanswered.length > 10 ? '...' : ''}`;
+    // Auto-submit from timer: skip confirmation
+    if (!isAutoSubmit) {
+      const unanswered = this._sessionAllQuestions.filter(q => {
+        const ua = this._sessionState.userAnswers[q.questionId];
+        return ua === undefined || ua === null || ua === '';
+      });
+
+      let message = '确认提交试卷吗？';
+      if (unanswered.length > 0) {
+        message += `\n\n⚠ 还有 ${unanswered.length} 道题未作答：\n${unanswered.map(q => `#${q.sessionNumber} ${TYPE_LABELS_SHORT[q.type]}`).slice(0, 10).join('、')}${unanswered.length > 10 ? '...' : ''}`;
+      }
+
+      const confirmed = await showConfirm('提交试卷', message, '确认提交', '继续检查');
+      if (!confirmed) return;
     }
-
-    const confirmed = await showConfirm('提交试卷', message, '确认提交', '继续检查');
-    if (!confirmed) return;
 
     this._removeBeforeUnload();
     sessionStorage.removeItem('exam_active');
     stopTimer();
 
     // Capture elapsed time before recording
-    sessionState.elapsedSeconds = getElapsedSeconds();
+    this._sessionState.elapsedSeconds = getElapsedSeconds();
 
     // Score
-    const scoreResult = scoreSession(sessionState);
+    const scoreResult = scoreSession(this._sessionState);
 
     // Record results
-    await recordResults(sessionState, scoreResult);
+    await recordResults(this._sessionState, scoreResult);
 
     // Mark submitted
-    sessionState.submitted = true;
-    await saveSession(sessionState);
-    await deleteSessionByUser(sessionState.userId);
+    this._sessionState.submitted = true;
+    await saveSession(this._sessionState);
+    await deleteSessionByUser(this._sessionState.userId);
     setState({ currentExam: null });
 
     // Show results
-    const isExam = sessionState.type === 'exam';
-    const passed = isExam && scoreResult.totalScore >= sessionState.passScore;
+    const isExam = this._sessionState.type === 'exam';
+    const passed = isExam && scoreResult.totalScore >= this._sessionState.passScore;
 
     let resultsHtml = `
       <div class="text-center mb-3">
         <h4>${isExam ? '考试' : '练习'}结果</h4>
-        ${isExam ? `<h2 class="${passed ? 'text-success' : 'text-danger'}">${scoreResult.totalScore} / ${sessionState.totalScore}</h2>
-        <p>${passed ? '<span class="badge bg-success fs-6">及格</span>' : '<span class="badge bg-danger fs-6">未及格</span>'}（及格线：${sessionState.passScore} 分）</p>` : ''}
+        ${isExam ? `<h2 class="${passed ? 'text-success' : 'text-danger'}">${scoreResult.totalScore} / ${this._sessionState.totalScore}</h2>
+        <p>${passed ? '<span class="badge bg-success fs-6">及格</span>' : '<span class="badge bg-danger fs-6">未及格</span>'}（及格线：${this._sessionState.passScore} 分）</p>` : ''}
         <p class="text-muted">正确 ${scoreResult.correctCount} / ${scoreResult.totalQuestions} 题</p>
       </div>`;
 
@@ -306,9 +372,9 @@ const _t1SessionPage = {
     if (scoreResult.wrongQuestionIds.length > 0) {
       resultsHtml += `<h6>错题及正确答案：</h6><div class="list-group">`;
       for (const qid of scoreResult.wrongQuestionIds) {
-        const q = sessionAllQuestions.find(sq => sq.questionId === qid);
+        const q = this._sessionAllQuestions.find(sq => sq.questionId === qid);
         if (!q) continue;
-        const ua = sessionState.userAnswers[q.questionId];
+        const ua = this._sessionState.userAnswers[q.questionId];
         resultsHtml += `<div class="list-group-item">
           <div class="fw-bold">#${q.sessionNumber} ${TYPE_LABELS_SHORT[q.type]}</div>
           <div>${escapeHtml(q.content)}</div>
@@ -333,10 +399,20 @@ const _t1SessionPage = {
     this._removeBeforeUnload();
     sessionStorage.removeItem('exam_active');
     stopTimer();
-    await deleteSessionByUser(sessionState.userId);
+    await deleteSessionByUser(this._sessionState.userId);
     setState({ currentExam: null });
-    sessionState = null;
+    this._sessionState = null;
     location.hash = '#/t1';
+  },
+
+  // Called by router when user confirms leaving an active session
+  async abandonAndDestroy() {
+    this._abandoned = true;
+    const user = this._sessionState?.userId;
+    if (user) await deleteSessionByUser(user);
+    sessionStorage.removeItem('exam_active');
+    setState({ currentExam: null });
+    await this.destroy();
   },
 
   _removeBeforeUnload() {
@@ -352,11 +428,21 @@ const _t1SessionPage = {
       document.removeEventListener('keydown', this._t1KeyHandler);
       this._t1KeyHandler = null;
     }
-    stopTimer();
-    if (sessionState && !sessionState.submitted) {
-      sessionState.elapsedSeconds = getElapsedSeconds();
-      await saveSession(sessionState);
+    if (this._toggleChangeHandler) {
+      document.removeEventListener('change', this._toggleChangeHandler);
+      this._toggleChangeHandler = null;
     }
+    stopTimer();
+    // Skip save if session was already deleted by abandonAndDestroy()
+    if (!this._abandoned && this._sessionState && !this._sessionState.submitted) {
+      this._sessionState.elapsedSeconds = getElapsedSeconds();
+      await saveSession(this._sessionState);
+    }
+    this._abandoned = false;
+    this._sessionState = null;
+    this._sessionAllQuestions = [];
+    this._sessionCurrentIndex = 0;
+    this._sessionQuestionsByType = {};
   }
 };
 

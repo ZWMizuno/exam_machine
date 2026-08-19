@@ -68,12 +68,12 @@ function renderQuestion(question, options = {}) {
 
   return `
     <div class="question-card mb-3" data-question-id="${question.id || question.questionId}" data-question-type="${type}">
-      <div class="question-meta">
-        <span class="fw-bold">#${displayNumber}</span>
+      <div class="question-meta d-flex align-items-center gap-2">
         ${typeBadge(type)}
+        <span class="fw-bold">#${displayNumber}</span>
+        <div class="question-content" style="flex:1">${escapeHtml(question.content)}</div>
         ${metaHtml}
       </div>
-      <div class="question-content">${escapeHtml(question.content)}</div>
       ${answerHtml}
       ${streakHtml}
       ${feedbackHtml}
@@ -89,11 +89,12 @@ function renderSingleChoice(question, readOnly, showAnswer, userAnswer, instantF
     ${labels.map(label => {
       const isSelected = userAnswer === label;
       let cssClass = 'option-item';
+      if (readOnly) cssClass += ' no-hover';
       if (showAnswer && label === correctAnswer) cssClass += ' correct-answer';
       if (showAnswer && isSelected && label !== correctAnswer) cssClass += ' wrong-answer';
       if (!showAnswer && isSelected) cssClass += ' selected';
 
-      return `<li class="${cssClass}" data-value="${label}" ${readOnly ? '' : 'style="cursor:pointer"'}>
+      return `<li class="${cssClass}" data-value="${label}">
         <span class="option-letter">${label}</span>
         <span>${escapeHtml(opts[label] || '')}</span>
         ${showAnswer && label === correctAnswer ? '<i class="bi bi-check-circle-fill text-success ms-auto"></i>' : ''}
@@ -114,11 +115,12 @@ function renderMultiChoice(question, readOnly, showAnswer, userAnswer, instantFe
       const isSelected = selectedAnswers.includes(label);
       const isCorrect = correctAnswer.includes(label);
       let cssClass = 'option-item';
+      if (readOnly) cssClass += ' no-hover';
       if (showAnswer && isCorrect) cssClass += ' correct-answer';
       if (showAnswer && isSelected && !isCorrect) cssClass += ' wrong-answer';
       if (!showAnswer && isSelected) cssClass += ' selected';
 
-      return `<li class="${cssClass}" data-value="${label}" ${readOnly ? '' : 'style="cursor:pointer"'}>
+      return `<li class="${cssClass}" data-value="${label}">
         <span class="option-letter">${label}</span>
         <span>${escapeHtml(opts[label] || '')}</span>
         ${showAnswer && isCorrect ? '<i class="bi bi-check-circle-fill text-success ms-auto"></i>' : ''}
@@ -136,11 +138,12 @@ function renderTrueFalse(question, readOnly, showAnswer, userAnswer, instantFeed
     ${['true', 'false'].map(val => {
       const isSelected = userAnswer === val;
       let cssClass = 'option-item';
+      if (readOnly) cssClass += ' no-hover';
       if (showAnswer && val === correctAnswer) cssClass += ' correct-answer';
       if (showAnswer && isSelected && val !== correctAnswer) cssClass += ' wrong-answer';
       if (!showAnswer && isSelected) cssClass += ' selected';
 
-      return `<li class="${cssClass}" data-value="${val}" ${readOnly ? '' : 'style="cursor:pointer"'}>
+      return `<li class="${cssClass}" data-value="${val}">
         <span class="option-letter">${val === 'true' ? '✓' : '✗'}</span>
         <span>${labels[val]}</span>
         ${showAnswer && val === correctAnswer ? '<i class="bi bi-check-circle-fill text-success ms-auto"></i>' : ''}
@@ -153,12 +156,14 @@ function renderTrueFalse(question, readOnly, showAnswer, userAnswer, instantFeed
 function renderFillBlank(question, readOnly, showAnswer, userAnswer, instantFeedback) {
   const blanks = question.answer || []; // array of correct answers
   const userBlanks = Array.isArray(userAnswer) ? userAnswer : [];
+  // In view mode (readOnly && showAnswer): pre-fill with correct answer, no "正确答案" text
+  const viewMode = readOnly && showAnswer;
 
   return `<div class="fill-blanks">
     ${blanks.map((ans, i) => {
-      const userVal = userBlanks[i] || '';
+      const userVal = viewMode ? ans : (userBlanks[i] || '');
       let inputClass = 'form-control fill-blank-input';
-      if (showAnswer) {
+      if (showAnswer && !viewMode) {
         const ua = (userVal || '').trim().replace(/\s+/g, '').toLowerCase();
         const ca = (ans || '').toLowerCase();
         if (ua === ca) inputClass += ' is-valid';
@@ -167,7 +172,7 @@ function renderFillBlank(question, readOnly, showAnswer, userAnswer, instantFeed
       return `<div class="mb-2">
         <label class="form-label fw-bold">第 ${i+1} 空</label>
         <input type="text" class="${inputClass}" data-blank-index="${i}" value="${escapeHtml(userVal)}" ${readOnly ? 'readonly' : ''} placeholder="请输入答案">
-        ${showAnswer ? `<div class="form-text ${(userVal||'').trim().replace(/\s+/g,'').toLowerCase() === ans.toLowerCase() ? 'text-success' : 'text-danger'}">正确答案：${escapeHtml(ans)}</div>` : ''}
+        ${showAnswer && !viewMode ? `<div class="form-text ${(userVal||'').trim().replace(/\s+/g,'').toLowerCase() === ans.toLowerCase() ? 'text-success' : 'text-danger'}">正确答案：${escapeHtml(ans)}</div>` : ''}
       </div>`;
     }).join('')}
   </div>`;
@@ -175,8 +180,11 @@ function renderFillBlank(question, readOnly, showAnswer, userAnswer, instantFeed
 
 function renderEssay(question, readOnly, showAnswer, userAnswer, instantFeedback) {
   const userVal = userAnswer || '';
+  // In view mode (readOnly && showAnswer): pre-fill with correct answer, no "正确答案" text
+  const viewMode = readOnly && showAnswer;
+  const displayVal = viewMode ? (question.answer || '') : userVal;
   let textareaClass = 'form-control essay-textarea';
-  if (showAnswer) {
+  if (showAnswer && !viewMode) {
     const ua = (userVal || '').trim().replace(/\s+/g, '').toLowerCase();
     const ca = (question.answer || '').toLowerCase();
     if (ua === ca) textareaClass += ' is-valid';
@@ -184,8 +192,8 @@ function renderEssay(question, readOnly, showAnswer, userAnswer, instantFeedback
   }
 
   return `<div>
-    <textarea class="${textareaClass}" data-type="essay" ${readOnly ? 'readonly' : ''} placeholder="请输入答案">${escapeHtml(userVal)}</textarea>
-    ${showAnswer ? `<div class="mt-1"><strong>正确答案：</strong>${escapeHtml(question.answer || '')}</div>` : ''}
+    <textarea class="${textareaClass}" data-type="essay" ${readOnly ? 'readonly' : ''} placeholder="请输入答案">${escapeHtml(displayVal)}</textarea>
+    ${showAnswer && !viewMode ? `<div class="mt-1"><strong>正确答案：</strong>${escapeHtml(question.answer || '')}</div>` : ''}
   </div>`;
 }
 

@@ -17,8 +17,9 @@ async function register(username, password) {
   if (existing) return { success: false, message: '用户名已存在' };
 
   const passwordHash = await hashPassword(password);
-  const user = { username, passwordHash, role: 'user', createdAt: new Date().toISOString() };
+  const user = { username, passwordHash, role: 'user', createdAt: new Date().toISOString(), coins: 0 };
   const id = await createUser(user);
+  await initUserDefaultSkins(id);
   const newUser = { id, username, role: 'user' };
   persistSession(newUser);
   setState({ currentUser: newUser });
@@ -45,6 +46,11 @@ function logout() {
   setState({ currentUser: null, breadcrumb: [] });
   location.hash = '#/login';
 }
+
+window.confirmLogout = async function() {
+  const confirmed = await showConfirm('确认退出', '确定要退出登录吗？', '退出', '取消');
+  if (confirmed) logout();
+};
 
 function persistSession(user) {
   localStorage.setItem('exam_machine_session', JSON.stringify(user));

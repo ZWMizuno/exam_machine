@@ -4,6 +4,9 @@
 
 async function initApp() {
   try {
+    // Request persistent storage to prevent browser from deleting data
+    await requestPersistentStorage();
+
     // Initialize database & seed default admin
     await seedDefaultAdmin();
 

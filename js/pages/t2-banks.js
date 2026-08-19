@@ -8,10 +8,12 @@ const _t2BanksPage = {
   async render(container, params) {
     const hash = location.hash.slice(1);
     if (hash === '/t2/add') { await this.renderImport(container); return; }
+    t2CurrentPage = 1;
     await this.renderList(container);
   },
 
   async renderList(container) {
+    container.style.background = '';
     const banks = await searchBanks(t2SearchQuery);
     const total = banks.length;
     const totalPages = Math.ceil(total / T2_PAGE_SIZE);
@@ -26,19 +28,18 @@ const _t2BanksPage = {
       for (const bank of pageBanks) {
         const counts = await getQuestionCounts(bank.id);
         rowsHtml += `<tr>
-          <td class="d-none"><input type="checkbox" class="t2-row-checkbox" value="${bank.id}"></td>
-          <td><strong>${escapeHtml(bank.name)}</strong></td>
+          <td class="batch-col show"><input type="checkbox" class="t2-row-checkbox" value="${bank.id}"></td>
+          <td><strong class="t2-bank-name">${escapeHtml(bank.name)}</strong></td>
           <td><span class="badge bg-primary-subtle text-primary">${counts.single || 0}</span></td>
           <td><span class="badge bg-info-subtle text-info">${counts.multi || 0}</span></td>
           <td><span class="badge bg-warning-subtle text-warning-emphasis">${counts.tf || 0}</span></td>
           <td><span class="badge bg-success-subtle text-success">${counts.fill || 0}</span></td>
           <td><span class="badge bg-secondary-subtle text-secondary">${counts.essay || 0}</span></td>
           <td class="text-nowrap">
-            <button class="btn btn-sm btn-outline-info btn-icon me-1" title="查看" onclick="location.hash='#/t2/view/${bank.id}'"><i class="bi bi-eye"></i></button>
-            <button class="btn btn-sm btn-outline-secondary btn-icon me-1" title="导出" onclick="exportBank(${bank.id})"><i class="bi bi-download"></i></button>
+            <button class="btn btn-sm btn-outline-info btn-icon-sm me-1" title="查看" onclick="location.hash='#/t2/view/${bank.id}'"><i class="bi bi-eye"></i></button>
+            <button class="btn btn-sm btn-outline-secondary btn-icon-sm me-1" title="导出" onclick="t2ExportWithConfirm(${bank.id}, '${escapeHtml(bank.name)}')"><i class="bi bi-download"></i></button>
             ${isAdminUser ? `
-            <button class="btn btn-sm btn-outline-primary btn-icon me-1" title="编辑" onclick="location.hash='#/t2/edit/${bank.id}'"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-sm btn-outline-danger btn-icon" title="删除" data-delete-bank="${bank.id}" data-delete-name="${escapeHtml(bank.name)}"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-sm btn-outline-danger btn-icon-sm" title="删除" data-delete-bank="${bank.id}" data-delete-name="${escapeHtml(bank.name)}"><i class="bi bi-trash"></i></button>
             ` : ''}
           </td>
         </tr>`;
@@ -46,42 +47,46 @@ const _t2BanksPage = {
     }
 
     container.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4><i class="bi bi-collection me-2"></i>题库集</h4>
-        <div class="d-flex gap-2">
-          <button class="btn btn-outline-secondary btn-sm" onclick="t2ToggleBatchSelect()"><i class="bi bi-check2-square me-1"></i>批量选择</button>
-          ${isAdminUser ? `
-          <button class="btn btn-danger btn-sm d-none" id="batchDeleteBtn" onclick="t2BatchDelete()"><i class="bi bi-trash me-1"></i>批量删除</button>
-          <button class="btn btn-primary btn-sm" onclick="location.hash='#/t2/add'"><i class="bi bi-plus-circle me-1"></i>新增题库</button>
-          ` : ''}
+      <div class="content-narrow">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 style="color:#1a1a1a"><i class="bi bi-collection me-2"></i>题库集</h4>
+          <div class="d-flex gap-2">
+            ${isAdminUser ? `
+            <button class="btn btn-danger btn-sm" id="batchDeleteBtn" onclick="t2BatchDelete()"><i class="bi bi-trash me-1"></i>批量删除</button>
+            ` : ''}
+            <button class="btn btn-success btn-sm" id="batchExportBtn" onclick="t2BatchExport()"><i class="bi bi-download me-1"></i>批量导出</button>
+            <button class="btn btn-primary btn-sm" onclick="location.hash='#/t2/add'"><i class="bi bi-plus-circle me-1"></i>新增题库</button>
+          </div>
         </div>
-      </div>
 
-      <div class="mb-3">
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input type="text" class="form-control" id="t2Search" placeholder="搜索题库名称..." value="${escapeHtml(t2SearchQuery)}">
+        <div class="mb-3">
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="t2Search" placeholder="搜索题库名称..." value="${escapeHtml(t2SearchQuery)}">
+          </div>
         </div>
-      </div>
 
-      <div class="table-container">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th class="d-none"><input type="checkbox" id="t2SelectAll" onchange="t2ToggleAll(this)"></th>
-              <th>题库名称</th>
-              <th>单选题</th>
-              <th>多选题</th>
-              <th>判断题</th>
-              <th>填空题</th>
-              <th>问答题</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>${rowsHtml}</tbody>
-        </table>
-      </div>
-      <div id="t2Pagination"></div>`;
+        <div class="table-page-wrapper">
+          <div class="table-container">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th class="batch-col show"><input type="checkbox" id="t2SelectAll" onchange="t2ToggleAll(this)"></th>
+                  <th>题库名称</th>
+                  <th>单选题</th>
+                  <th>多选题</th>
+                  <th>判断题</th>
+                  <th>填空题</th>
+                  <th>问答题</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </div>
+          <div id="t2Pagination" class="pagination-container"></div>
+        </div>
+      </div>`;
 
     // Pagination
     renderPagination(document.getElementById('t2Pagination'), {
@@ -112,30 +117,33 @@ const _t2BanksPage = {
   },
 
   async renderImport(container) {
+    container.style.background = '';
     let importFiles = [];
 
     container.innerHTML = `
-      <h4 class="mb-3"><i class="bi bi-plus-circle me-2"></i>新增题库</h4>
-      <div class="card mb-3">
-        <div class="card-body">
-          <h6>步骤 1：下载标准模板</h6>
-          <p class="text-muted small">请先下载标准 Excel 模板，按格式填写题目后上传。</p>
-          <button class="btn btn-outline-primary" onclick="generateTemplate()"><i class="bi bi-download me-1"></i>下载标准模板</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body">
-          <h6>步骤 2：上传填写好的题库文件</h6>
-          <div class="drop-zone mb-3" id="t2DropZone">
-            <i class="bi bi-cloud-upload d-block mb-2"></i>
-            <p>拖拽 .xlsx 文件到此处，或点击选择文件</p>
-            <input type="file" id="t2FileInput" accept=".xlsx,.xls" multiple style="display:none">
-            <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('t2FileInput').click()">选择文件</button>
+      <div class="content-narrow">
+        <h4 class="mb-3" style="color:#1a1a1a"><i class="bi bi-plus-circle me-2"></i>新增题库</h4>
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6>步骤 1：下载标准模板</h6>
+            <p class="text-muted small">请先下载标准 Excel 模板，按格式填写题目后上传。</p>
+            <button class="btn btn-outline-primary" onclick="generateTemplate()"><i class="bi bi-download me-1"></i>下载标准模板</button>
           </div>
-          <div id="t2FileList"></div>
-          <button class="btn btn-primary mt-3" id="t2ImportBtn" disabled onclick="t2DoImport()"><i class="bi bi-check-circle me-1"></i>确认导入</button>
-          <a href="#/t2" class="btn btn-outline-secondary mt-3 ms-2">返回</a>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <h6>步骤 2：上传填写好的题库文件</h6>
+            <div class="drop-zone mb-3" id="t2DropZone">
+              <i class="bi bi-cloud-upload d-block mb-2"></i>
+              <p>拖拽 .xlsx 文件到此处，或点击选择文件</p>
+              <input type="file" id="t2FileInput" accept=".xlsx,.xls" multiple style="display:none">
+              <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('t2FileInput').click()">选择文件</button>
+            </div>
+            <div id="t2FileList"></div>
+            <button class="btn btn-primary mt-3" id="t2ImportBtn" disabled onclick="t2DoImport()"><i class="bi bi-check-circle me-1"></i>确认导入</button>
+            <a href="#/t2" class="btn btn-outline-secondary mt-3 ms-2">返回</a>
+          </div>
         </div>
       </div>`;
 
@@ -194,6 +202,7 @@ const _t2BanksPage = {
   },
 
   async destroy() {
+    t2CurrentPage = 1;
     delete window._t2ImportFiles;
   }
 };
@@ -227,20 +236,16 @@ async function t2DoImport() {
 }
 
 // Batch select
-let t2BatchMode = false;
-function t2ToggleBatchSelect() {
-  t2BatchMode = !t2BatchMode;
-  // Toggle header checkbox cell and delete button
-  document.querySelector('#t2SelectAll').closest('th').classList.toggle('d-none', !t2BatchMode);
-  document.getElementById('batchDeleteBtn')?.classList.toggle('d-none', !t2BatchMode);
-  document.getElementById('t2SelectAll').checked = false;
-  // Toggle all row checkbox cells
-  document.querySelectorAll('tbody td:first-child').forEach(td => td.classList.toggle('d-none', !t2BatchMode));
-  document.querySelectorAll('.t2-row-checkbox').forEach(cb => cb.checked = false);
-}
 
 function t2ToggleAll(checkbox) {
   document.querySelectorAll('.t2-row-checkbox').forEach(cb => cb.checked = checkbox.checked);
+}
+
+function t2BatchExport() {
+  const checked = document.querySelectorAll('.t2-row-checkbox:checked');
+  if (checked.length === 0) { showToast('请选择题库', 'warning'); return; }
+  const ids = Array.from(checked).map(cb => parseInt(cb.value));
+  batchExportBanks(ids);
 }
 
 async function t2BatchDelete() {
@@ -257,6 +262,11 @@ async function t2BatchDelete() {
   showToast('批量删除完成', 'success');
   t2CurrentPage = 1;
   location.reload();
+}
+
+async function t2ExportWithConfirm(bankId, bankName) {
+  const confirmed = await showConfirm('导出题库', `确定要导出《${bankName}》吗？`, '导出', '取消', false);
+  if (confirmed) await exportBank(bankId);
 }
 
 window._t2BanksPage = _t2BanksPage;
