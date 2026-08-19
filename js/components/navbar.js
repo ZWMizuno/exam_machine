@@ -1,4 +1,4 @@
-// === Navigation Bar Component ===
+// === Navigation Bar Component — modernized ===
 
 function renderNavbar() {
   const container = document.getElementById('app-navbar');
@@ -24,7 +24,10 @@ function renderNavbar() {
   container.innerHTML = `
     <nav class="navbar navbar-expand-lg">
       <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center gap-1" href="#/home" style="font-family:'Microsoft YaHei',sans-serif;font-weight:700"><span style="background:var(--color-primary);color:#fff;padding:2px 8px;border-radius:6px;font-size:0.85em;letter-spacing:0.05em;font-family:'Patrick Hand',cursive;line-height:1.2;">EM</span>考试机</a>
+        <a class="navbar-brand" href="#/home">
+          <span class="navbar-mark">EM</span>
+          <span>考试机</span>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-links">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -35,19 +38,22 @@ function renderNavbar() {
               <span class="coin-help-btn" id="coinHelpBtn" title="硬币获取规则：考试/练习每答对一道题奖励1枚；错题扫盲每掌握一道奖励1枚">
                 <i class="bi bi-question-circle-fill"></i>
               </span>
-              <div class="coin-body">
-                <svg class="coin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" fill="#F5C23A" stroke="#C9920A" stroke-width="1.5"/>
-                  <circle cx="12" cy="12" r="7" fill="#F5D76E"/>
-                  <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#8B6914" font-family="serif">$</text>
-                </svg>
-                <span id="coinCount" class="coin-count">0</span>
-              </div>
+              <svg class="coin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="#B07A1B" stroke="#1A1D29" stroke-width="1.5"/>
+                <circle cx="12" cy="12" r="7" fill="#E5C97A"/>
+                <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#1A1D29" font-family="serif">$</text>
+              </svg>
+              <span id="coinCount" class="coin-count">0</span>
             </div>
-            <span class="user-name" style="display:inline-flex;align-items:center;background:#fff;border:1px solid #ddd;border-radius:6px;padding:0.2rem 0.6rem;"><i class="bi bi-person-circle me-1"></i>${escapeHtml(user.username)}</span>
-            ${user.role === 'admin' ? '<span class="badge bg-warning text-dark ms-1">管理员</span>' : ''}
+            <span class="user-chip">
+              <i class="bi bi-person-circle"></i>
+              <span>${escapeHtml(user.username)}</span>
+              ${user.role === 'admin' ? '<span class="role-badge">管理员</span>' : ''}
+            </span>
           </span>
-          <button class="btn btn-sm d-flex align-items-center justify-content-center" style="background:#fff;color:#333;border:1px solid #ddd;width:32px;height:32px;padding:0;border-radius:6px;" onclick="confirmLogout()"><i class="bi bi-box-arrow-right"></i></button>
+          <button class="btn-icon-flat" onclick="confirmLogout()" title="退出登录" aria-label="退出登录">
+            <i class="bi bi-box-arrow-right"></i>
+          </button>
         </div>
       </div>
     </nav>`;

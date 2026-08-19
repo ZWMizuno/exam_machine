@@ -47,22 +47,26 @@ const _t2DetailPage = {
 
   renderUI(container, bank) {
     container.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 style="color:#1a1a1a">
-          <a href="#/t2" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
-          <i class="bi bi-eye me-2"></i>《${escapeHtml(bank.name)}》
-        </h4>
-        <div class="d-flex align-items-center gap-2">
-          <div class="input-group" style="width:250px">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" id="t2DetailSearch" placeholder="搜索题目内容..." value="${escapeHtml(t2DetailSearchQuery)}">
-            <button class="btn btn-sm btn-outline-secondary" id="t2ClearSearch" style="${t2DetailSearchQuery ? 'display:inline-flex' : 'display:none'}">
-              <i class="bi bi-x"></i></button>
-          </div>
-          <button class="btn btn-outline-secondary btn-sm" onclick="t2DetailExportWithConfirm(${bank.id}, '${escapeHtml(bank.name)}')">
-            <i class="bi bi-download"></i> 导出</button>
+      <header class="page-header">
+        <div class="page-header__title">
+          <a href="#/t2" class="text-decoration-none" style="color:var(--ink-faint)"><i class="bi bi-arrow-left"></i></a>
+          <i class="bi bi-eye"></i>
+          <h3>《${escapeHtml(bank.name)}》</h3>
+          <span class="subtitle">${bank._questionsCount || ''}</span>
         </div>
-      </div>
+        <div class="page-header__actions">
+          <div class="input-group" style="width:260px">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="t2DetailSearch" placeholder="搜索题目内容…" value="${escapeHtml(t2DetailSearchQuery)}">
+            <button class="btn btn-outline-secondary btn-sm" id="t2ClearSearch" style="${t2DetailSearchQuery ? 'display:inline-flex' : 'display:none'}">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="t2DetailExportWithConfirm(${bank.id}, '${escapeHtml(bank.name)}')">
+            <i class="bi bi-download"></i> 导出
+          </button>
+        </div>
+      </header>
 
       <div class="exam-layout">
         <div class="exam-sidebar-col">
@@ -76,7 +80,7 @@ const _t2DetailPage = {
             <div class="d-flex align-items-center gap-2">
               <button class="btn btn-outline-primary" id="t2DetailPrevBtn" ${t2DetailCurrentIndex === 0 ? 'disabled' : ''}><i class="bi bi-chevron-left"></i> 上一题</button>
               <button class="btn btn-outline-primary" id="t2DetailNextBtn" ${t2DetailCurrentIndex === (t2DetailAllQuestions.length - 1) ? 'disabled' : ''}>下一题 <i class="bi bi-chevron-right"></i></button>
-              <span class="text-muted" style="font-size:0.8rem"><i class="bi bi-keyboard me-1"></i>键盘 ← → 键可切换题目</span>
+              <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.05em"><i class="bi bi-keyboard me-1"></i>← →</span>
             </div>
           </div>
         </div>
@@ -118,7 +122,7 @@ const _t2DetailPage = {
     const savedScroll = mainScroll ? mainScroll.scrollTop : 0;
 
     if (total === 0) {
-      area.innerHTML = '<div class="text-center text-muted py-5">暂无题目</div>';
+      area.innerHTML = '<div class="empty-state" style="padding:var(--s-7)"><i class="bi bi-inbox"></i><p>暂无题目</p></div>';
       const sidebar = document.getElementById('t2DetailSidebar');
       if (sidebar) sidebar.innerHTML = '';
       return;
@@ -129,7 +133,7 @@ const _t2DetailPage = {
 
     area.innerHTML = `
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <span class="text-muted">${t2DetailCurrentIndex + 1} / ${total}</span>
+        <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.05em">${t2DetailCurrentIndex + 1} / ${total}</span>
       </div>
       ${renderQuestion({
         id: q.id,

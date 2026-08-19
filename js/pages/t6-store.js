@@ -1,4 +1,4 @@
-// === T6 Skin Store Page ===
+// === T6 Skin Store Page — modernized ===
 
 let _t6Filter = 'all'; // 'all' | 'owned' | 'unowned'
 
@@ -43,27 +43,25 @@ const _t6StorePage = {
         if (!show) continue;
         totalVisible++;
 
+        const buyButtonHtml = owned
+          ? '<span class="store-buy-btn btn-owned">已拥有</span>'
+          : (price === 0
+              ? '<span class="store-buy-btn btn-owned" style="background:var(--paper-sunk);color:var(--ink-mid);border-color:var(--rule)">免费</span>'
+              : '<button class="store-buy-btn btn-buy" onclick="event.stopPropagation();t6BuySkin(' + idx + ')"><svg class="store-coin-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#B07A1B" stroke="#1A1D29" stroke-width="1.5"/><circle cx="12" cy="12" r="7" fill="#E5C97A"/></svg><span>' + price + '</span></button>'
+            );
+
         cardsHtml +=
           '<div class="store-showcase' + (owned ? '' : ' clickable') + '" data-skin-idx="' + idx + '"' + (owned ? '' : ' onclick="t6BuySkin(' + idx + ')"') + '>' +
             '<div class="store-book-wrap">' +
               '<div class="store-book" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + getBookmarkTextColor(scheme.bookmark) + '">' +
-                '<div class="store-book-logo"><i class="bi bi-book-fill"></i></div>' +
+                '<i class="bi bi-book-fill store-book-logo"></i>' +
                 '<div class="store-book-body"><span class="store-book-center-n">N</span></div>' +
                 '<div class="store-book-bookmark"></div>' +
               '</div>' +
-              '<div class="store-book-shelf"></div>' +
             '</div>' +
             '<div class="store-price-tag">' +
               '<div class="store-skin-name">' + name + '</div>' +
-              '<div class="store-skin-price-row">' +
-                (owned ?
-                  '<span class="store-price-free">已拥有</span>' :
-                  (price === 0 ?
-                    '<span class="store-price-free">免费</span>' :
-                    '<svg class="store-coin-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#F5C23A" stroke="#C9920A" stroke-width="1.5"/><circle cx="12" cy="12" r="7" fill="#F5D76E"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#8B6914" font-family="serif">$</text></svg><span class="store-price-value">' + price + '</span>'
-                  )
-                ) +
-              '</div>' +
+              buyButtonHtml +
             '</div>' +
           '</div>';
       }
@@ -75,15 +73,16 @@ const _t6StorePage = {
         '<div class="store-group">' +
           '<div class="store-group-header">' +
             '<h5 class="store-group-name">' + grp.name + '</h5>' +
+            '<span class="store-group-price">' + priceLabel + '</span>' +
           '</div>' +
           '<div class="store-showcase-grid">' + cardsHtml + '</div>' +
         '</div>';
     }
 
     const emptyStateHtml =
-      '<div class="empty-state" style="background:var(--color-surface);border-radius:0.5rem;padding:2rem;text-align:center;color:#aaa;">' +
-        '<i class="bi bi-palette" style="font-size:3rem;margin-bottom:1rem;display:block;"></i>' +
-        '<p style="margin-bottom:1rem;">' +
+      '<div class="empty-state">' +
+        '<i class="bi bi-palette"></i>' +
+        '<p>' +
           (_t6Filter === 'owned' ? '暂无已拥有的皮肤' : _t6Filter === 'unowned' ? '暂无未拥有的皮肤' : '暂无可显示的皮肤') +
         '</p>' +
         (_t6Filter !== 'all' ? '<a href="#/t6" class="btn btn-primary btn-sm" onclick="event.preventDefault();_t6Filter=\'all\';_t6StorePage.render(document.getElementById(\'app-content\'));">查看全部</a>' : '') +
@@ -91,26 +90,33 @@ const _t6StorePage = {
 
     container.innerHTML =
       '<div class="store-page"><div class="store-page-inner">' +
-        '<h4 class="flex-shrink-0" style="color:#1a1a1a;margin:0 0 0.75rem"><i class="bi bi-layers me-2"></i>书架</h4>' +
-        '<div class="store-filter-tabs mb-3">' +
+        '<header class="page-header">' +
+          '<div class="page-header__title">' +
+            '<i class="bi bi-layers"></i>' +
+            '<h3>书架</h3>' +
+            '<span class="subtitle">' + totalVisible + ' 本 · ' + userCoins + ' 硬币</span>' +
+          '</div>' +
+          '<div class="page-header__index">' +
+            '<strong>STORE</strong>' +
+            '<span>SKINS</span>' +
+          '</div>' +
+        '</header>' +
+        '<div class="store-filter-tabs">' +
           '<div class="tab-group">' +
             '<input type="radio" id="filter-all" name="store-filter" value="all" ' + (_t6Filter === 'all' ? 'checked' : '') + ' onchange="_t6Filter=\'all\';_t6StorePage.render(document.getElementById(\'app-content\'))">' +
-            '<label for="filter-all"><span>全部</span></label>' +
+            '<label for="filter-all">全部</label>' +
           '</div>' +
           '<div class="tab-group">' +
             '<input type="radio" id="filter-owned" name="store-filter" value="owned" ' + (_t6Filter === 'owned' ? 'checked' : '') + ' onchange="_t6Filter=\'owned\';_t6StorePage.render(document.getElementById(\'app-content\'))">' +
-            '<label for="filter-owned"><span>已拥有</span></label>' +
+            '<label for="filter-owned">已拥有</label>' +
           '</div>' +
           '<div class="tab-group">' +
             '<input type="radio" id="filter-unowned" name="store-filter" value="unowned" ' + (_t6Filter === 'unowned' ? 'checked' : '') + ' onchange="_t6Filter=\'unowned\';_t6StorePage.render(document.getElementById(\'app-content\'))">' +
-            '<label for="filter-unowned"><span>未拥有</span></label>' +
+            '<label for="filter-unowned">未拥有</label>' +
           '</div>' +
         '</div>' +
         (totalVisible === 0 ? emptyStateHtml : groupsHtml) +
       '</div></div>';
-
-    // Apply store background to app-content
-    document.getElementById('app-content').classList.add('store-bg');
   },
 
   async buySkin(colorIndex, userId) {
@@ -135,7 +141,7 @@ const _t6StorePage = {
   },
 
   async destroy() {
-    document.getElementById('app-content').classList.remove('store-bg');
+    // no-op: we no longer toggle a background class here
   }
 };
 

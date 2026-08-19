@@ -91,44 +91,72 @@ const _t4WrongbookPage = {
   },
 
   async renderGrid(container) {
-    document.getElementById('app-content').classList.add('store-bg');
     const user = getCurrentUser();
     const books = await getDistinctWrongBanks(user.id);
 
     if (books.length === 0) {
-      container.innerHTML = '<div class="empty-state"><i class="bi bi-book"></i><p>暂无错题，去考试或练习吧！</p><a href="#/t1" class="btn btn-primary">去考试/练习</a></div>';
+      container.innerHTML = `
+        <div class="content-narrow">
+          <header class="page-header">
+            <div class="page-header__title">
+              <i class="bi bi-book"></i>
+              <h3>错题集</h3>
+            </div>
+            <div class="page-header__index">
+              <strong>00</strong>
+              <span>WRONG BOOK</span>
+            </div>
+          </header>
+          <div class="empty-state">
+            <i class="bi bi-book"></i>
+            <p>暂无错题，去考试或练习吧！</p>
+            <a href="#/t1" class="btn btn-primary">去考试 / 练习</a>
+          </div>
+        </div>`;
       return;
     }
 
-    var self = this;
+    const self = this;
 
     function renderBookCards() {
-      var html = '';
-      for (var i = 0; i < books.length; i++) {
-        var b = books[i];
-        var scheme = BOOK_COLOR_SCHEMES[b.colorIndex != null ? b.colorIndex : i % BOOK_COLOR_SCHEMES.length];
-        var bmText = getBookmarkTextColor(scheme.bookmark);
+      let html = '';
+      for (let i = 0; i < books.length; i++) {
+        const b = books[i];
+        const idx = b.colorIndex != null ? b.colorIndex : i % BOOK_COLOR_SCHEMES.length;
+        const scheme = BOOK_COLOR_SCHEMES[idx];
+        const bmText = getBookmarkTextColor(scheme.bookmark);
         html += '<div class="book-wrapper">' +
           '<div class="book-card" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + bmText + '" onclick="location.hash=\'#/t4/' + b.bankId + '\'">' +
-            '<div class="book-logo"><i class="bi bi-book-fill"></i></div>' +
-            '<div class="book-body">' +
-              '<div class="book-name" style="font-family:\'SourceHanSansOLD-Heavy\',\'Source Han Sans OLD Heavy\',\'Noto Sans CJK SC\',sans-serif;font-weight:900">' + escapeHtml(b.bankName) + '</div>' +
-                          '</div>' +
-            '<div class="book-bookmark"></div>' +
+            '<div class="book-card__swatch">' +
+              '<i class="bi bi-book-fill book-card__logo"></i>' +
+              '<div class="book-card__bookmark"></div>' +
+            '</div>' +
+            '<div class="book-card__body">' +
+              '<div class="book-card__name">' + escapeHtml(b.bankName) + '</div>' +
+              '<div class="book-card__count">' + (b.count || 0) + ' 题</div>' +
+            '</div>' +
           '</div>' +
-          '<div class="book-shelf"></div>' +
-          '<div class="book-label" onclick="t4OpenSkinPopup(this,' + b.bankId + ')" title="点击更换皮肤"><i class="bi bi-palette-fill"></i><span>' + escapeHtml(BOOK_COLOR_SCHEMES[b.colorIndex != null ? b.colorIndex : i % BOOK_COLOR_SCHEMES.length].name) + '</span></div>' +
+          '<div class="book-label" onclick="t4OpenSkinPopup(this,' + b.bankId + ')" title="点击更换皮肤"><i class="bi bi-palette-fill"></i><span>' + escapeHtml(scheme.name) + '</span></div>' +
         '</div>';
       }
       document.getElementById('t4BookGrid').innerHTML = html;
     }
 
-    container.innerHTML = '<div class="content-narrow-4-5" style="display:flex;flex-direction:column;gap:2rem;padding:0.75rem 0 1.5rem">' +
-        '<h4 class="flex-shrink-0" style="font-size:1.5rem;margin:0;color:#1a1a1a"><i class="bi bi-book me-2"></i>错题集</h4>' +
-        '<div class="d-flex flex-column flex-grow-1" style="gap:0;padding-bottom:2.5rem;box-sizing:border-box">' +
-          '<div class="book-grid" id="t4BookGrid"></div>' +
-        '</div>' +
-      '</div>';
+    container.innerHTML = `
+      <div class="content-narrow-4-5">
+        <header class="page-header">
+          <div class="page-header__title">
+            <i class="bi bi-book"></i>
+            <h3>错题集</h3>
+            <span class="subtitle">共 ${books.length} 本 · 按题库归类</span>
+          </div>
+          <div class="page-header__index">
+            <strong>${String(books.length).padStart(2, '0')}</strong>
+            <span>WRONG BOOK</span>
+          </div>
+        </header>
+        <div class="book-grid" id="t4BookGrid"></div>
+      </div>`;
 
     renderBookCards();
   },
@@ -162,16 +190,18 @@ const _t4WrongbookPage = {
     _t4DetailInitialized = false;
 
     container.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">
-          <a href="#/t4" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
-          《${escapeHtml(bank.name)}》错题本
-        </h4>
-        <div>
-          <span class="text-muted me-3" id="t4DetailCount">共 ${wrongQs.length} 道错题</span>
+      <header class="page-header">
+        <div class="page-header__title">
+          <a href="#/t4" class="text-decoration-none" style="color:var(--ink-faint)"><i class="bi bi-arrow-left"></i></a>
+          <i class="bi bi-book"></i>
+          <h3>《${escapeHtml(bank.name)}》</h3>
+          <span class="subtitle">错题本</span>
+        </div>
+        <div class="page-header__actions">
+          <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.78rem" id="t4DetailCount">${wrongQs.length} 题</span>
           <button class="btn btn-primary" onclick="t4OpenReviewModal(${bankId})"><i class="bi bi-lightbulb me-1"></i>错题扫盲</button>
         </div>
-      </div>
+      </header>
       <div class="exam-layout exam-layout--no-scroll">
         <div class="exam-sidebar-col">
           <div class="exam-sidebar" id="t4DetailSidebar"></div>
@@ -222,7 +252,7 @@ const _t4WrongbookPage = {
 
     const total = t4DetailAllQuestions.length;
     if (total === 0) {
-      area.innerHTML = '<div class="text-center text-muted py-4">暂无错题</div>';
+      area.innerHTML = '<div class="empty-state" style="padding:var(--s-7)"><i class="bi bi-inbox"></i><p>暂无错题</p></div>';
       const sidebar = document.getElementById('t4DetailSidebar');
       if (sidebar) sidebar.innerHTML = '';
       const countEl = document.getElementById('t4DetailCount');
@@ -240,8 +270,8 @@ const _t4WrongbookPage = {
 
     area.innerHTML = `
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <span class="text-muted">${t4DetailCurrentIndex + 1} / ${total}</span>
-        <button class="btn btn-sm btn-outline-danger btn-icon" id="t4DetailDeleteBtn" title="从错题本移除"><i class="bi bi-trash"></i></button>
+        <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.05em">${t4DetailCurrentIndex + 1} / ${total}</span>
+        <button class="btn btn-outline-danger btn-icon-sm" id="t4DetailDeleteBtn" title="从错题本移除"><i class="bi bi-trash"></i></button>
       </div>
       ${renderQuestion({
         id: wq.id,
@@ -262,10 +292,10 @@ const _t4WrongbookPage = {
       })}
       <div class="d-flex justify-content-between align-items-center mt-3">
         <button class="btn btn-outline-primary" id="t4DetailPrevBtn" ${isFirst ? 'disabled' : ''}><i class="bi bi-chevron-left"></i> 上一题</button>
-        <span class="text-muted small">${t4DetailCurrentIndex + 1} / ${total}</span>
+        <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.78rem">${t4DetailCurrentIndex + 1} / ${total}</span>
         <button class="btn btn-outline-primary" id="t4DetailNextBtn" ${isLast ? 'disabled' : ''}>下一题 <i class="bi bi-chevron-right"></i></button>
       </div>
-      <div class="text-center text-muted mt-2" style="font-size:0.8rem"><i class="bi bi-keyboard me-1"></i>键盘 ← → 键可切换题目</div>`;
+      <div class="text-center mt-2" style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.05em"><i class="bi bi-keyboard me-1"></i>← →</div>`;
 
     // Delete handler
     const delBtn = document.getElementById('t4DetailDeleteBtn');
@@ -473,10 +503,17 @@ const _t4WrongbookPage = {
     const totalRemaining = engine.group.length + engine.pool.length;
 
     container.innerHTML = `
-      <h4 class="mb-3">
-        <a href="#/t4/${bankId}" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
-        错题扫盲
-      </h4>
+      <header class="page-header">
+        <div class="page-header__title">
+          <a href="#/t4/${bankId}" class="text-decoration-none" style="color:var(--ink-faint)"><i class="bi bi-arrow-left"></i></a>
+          <i class="bi bi-lightbulb"></i>
+          <h3>错题扫盲</h3>
+        </div>
+        <div class="page-header__index">
+          <strong>REVIEW</strong>
+          <span>5 题一组</span>
+        </div>
+      </header>
 
       <div class="d-flex align-items-center gap-3 mb-3" id="t4StatusBar">
         <span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>已清除 ${engine.cleared} 题</span>
@@ -513,9 +550,9 @@ const _t4WrongbookPage = {
     // Check if all done
     if (!engine || engine.group.length === 0) {
       area.innerHTML = `<div class="text-center py-5">
-        <i class="bi bi-emoji-smile fs-1 text-success"></i>
-        <h5 class="mt-2">扫盲完成！</h5>
-        <p class="text-muted">共清除了 ${engine ? engine.cleared : 0} 道错题</p>
+        <i class="bi bi-emoji-smile" style="font-size:2.5rem;color:var(--success)"></i>
+        <h5 class="mt-2" style="font-family:var(--font-display)">扫盲完成！</h5>
+        <p style="color:var(--ink-mid)">共清除了 ${engine ? engine.cleared : 0} 道错题</p>
         <a href="#/t4/${location.hash.split('/')[2]}" class="btn btn-primary">返回错题本</a>
       </div>`;
       // Update status bar to show final result
@@ -542,7 +579,7 @@ const _t4WrongbookPage = {
       answerHtml += `<div class="alert ${isCorrect ? 'alert-success' : 'alert-danger'} py-2 text-center">${isCorrect ? '<i class="bi bi-check-circle me-1"></i>回答正确！' : '<i class="bi bi-x-circle me-1"></i>回答错误'}</div>`;
 
       if (!isCorrect) {
-        answerHtml += `<div class="p-2 rounded mb-2" style="background:#e6f9f3;color:#0d6b3c;"><strong>正确答案：</strong>${formatCorrectAnswer(correctAnswer, type)}</div>`;
+        answerHtml += `<div class="p-2 rounded mb-2" style="background:var(--success-soft);color:var(--success);border:1px solid var(--success)"><strong>正确答案：</strong>${formatCorrectAnswer(correctAnswer, type)}</div>`;
       }
 
       // Show selected options (read-only)

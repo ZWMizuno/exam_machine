@@ -4,8 +4,8 @@
   "description": "网页版考试系统",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#4e73df",
-  "theme_color": "#4e73df",
+  "background_color": "#FAFAF7",
+  "theme_color": "#1A1D29",
   "icons": [
     {
       "src": "images/icon-70x70.png",

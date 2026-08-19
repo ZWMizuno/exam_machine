@@ -22,22 +22,32 @@ const _t1Page = {
   async renderLanding(container) {
     container.innerHTML = `
       <div class="content-narrow">
-        <h4 class="mb-4" style="color:#1a1a1a"><i class="bi bi-pencil-square me-2"></i>考试 & 练习</h4>
-        <p class="text-muted mb-4">请选择模式：</p>
-        <div class="row g-4">
+        <header class="page-header">
+          <div class="page-header__title">
+            <i class="bi bi-pencil-square"></i>
+            <h3>考试 & 练习</h3>
+            <span class="subtitle">选择一种模式开始</span>
+          </div>
+          <div class="page-header__index">
+            <strong>01 / 02</strong>
+            <span>SELECT MODE</span>
+          </div>
+        </header>
+
+        <div class="row g-3">
           <div class="col-md-6">
-            <div class="card text-center p-4 exam-mode-card" style="cursor:pointer" onclick="location.hash='#/t1/exam'">
-              <i class="bi bi-pencil-square fs-1 text-primary mb-3"></i>
-              <h5>考试模式</h5>
-              <p class="text-muted">计时考试，自动评分，记录成绩</p>
-            </div>
+            <a href="#/t1/exam" class="action-card" style="padding:var(--s-6) var(--s-5)">
+              <i class="bi bi-pencil-square"></i>
+              <div class="action-card__label" style="font-size:1.1rem">考试模式</div>
+              <div class="action-card__hint">计时考试，自动评分，记录成绩</div>
+            </a>
           </div>
           <div class="col-md-6">
-            <div class="card text-center p-4 exam-mode-card" style="cursor:pointer" onclick="location.hash='#/t1/practice'">
-              <i class="bi bi-journal-text fs-1 text-success mb-3"></i>
-              <h5>练习模式</h5>
-              <p class="text-muted">自由练习，即时纠错，查漏补缺</p>
-            </div>
+            <a href="#/t1/practice" class="action-card" style="padding:var(--s-6) var(--s-5)">
+              <i class="bi bi-journal-text"></i>
+              <div class="action-card__label" style="font-size:1.1rem">练习模式</div>
+              <div class="action-card__hint">自由练习，即时纠错，查漏补缺</div>
+            </a>
           </div>
         </div>
       </div>`;
@@ -56,7 +66,17 @@ const _t1Page = {
     this._examStep = 1;
 
     container.innerHTML = `
-      <h4 class="mb-4"><i class="bi bi-pencil-square me-2"></i>考试模式</h4>
+      <header class="page-header">
+        <div class="page-header__title">
+          <i class="bi bi-pencil-square"></i>
+          <h3>考试模式</h3>
+          <span class="subtitle">计时考试 · 自动评分</span>
+        </div>
+        <div class="page-header__index">
+          <strong>02 / 02</strong>
+          <span>EXAM WIZARD</span>
+        </div>
+      </header>
       <div class="wizard-steps mb-4">
         <div class="wizard-step active" id="examStep1">
           <div class="step-circle">1</div>
@@ -344,7 +364,17 @@ const _t1Page = {
     this._pracStep = 1;
 
     container.innerHTML = `
-      <h4 class="mb-4" style="color:#1a1a1a"><i class="bi bi-journal-text me-2"></i>练习模式</h4>
+      <header class="page-header">
+        <div class="page-header__title">
+          <i class="bi bi-journal-text"></i>
+          <h3>练习模式</h3>
+          <span class="subtitle">自由练习 · 即时纠错</span>
+        </div>
+        <div class="page-header__index">
+          <strong>02 / 02</strong>
+          <span>PRACTICE WIZARD</span>
+        </div>
+      </header>
       <div class="wizard-steps mb-4">
         <div class="wizard-step active" id="pracStep1">
           <div class="step-circle">1</div><div class="step-label">选择题库</div>

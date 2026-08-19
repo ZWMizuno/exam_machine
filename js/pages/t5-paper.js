@@ -21,7 +21,17 @@ const _t5PaperPage = {
     this._configs = null;
 
     container.innerHTML = `
-      <h4 class="mb-4" style="color:#1a1a1a"><i class="bi bi-file-earmark-text me-2"></i>试卷生成</h4>
+      <header class="page-header">
+        <div class="page-header__title">
+          <i class="bi bi-file-earmark-text"></i>
+          <h3>试卷生成</h3>
+          <span class="subtitle">从题库导出 Word 试卷</span>
+        </div>
+        <div class="page-header__index">
+          <strong>03 / 03</strong>
+          <span>PAPER WIZARD</span>
+        </div>
+      </header>
       <div class="wizard-steps mb-4">
         <div class="wizard-step active" id="t5Step1"><div class="step-circle">1</div><div class="step-label">选择题库</div></div>
         <div class="wizard-step" id="t5Step2"><div class="step-circle">2</div><div class="step-label">试题构成</div></div>

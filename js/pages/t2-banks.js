@@ -23,23 +23,23 @@ const _t2BanksPage = {
 
     let rowsHtml = '';
     if (pageBanks.length === 0) {
-      rowsHtml = `<tr><td colspan="8" class="text-center text-muted py-4">暂无题库${t2SearchQuery ? '，请调整搜索条件' : ''}</td></tr>`;
+      rowsHtml = `<tr><td colspan="8" class="text-center" style="color:var(--ink-faint);padding:var(--s-6)">暂无题库${t2SearchQuery ? '，请调整搜索条件' : ''}</td></tr>`;
     } else {
       for (const bank of pageBanks) {
         const counts = await getQuestionCounts(bank.id);
         rowsHtml += `<tr>
-          <td class="batch-col show"><input type="checkbox" class="t2-row-checkbox" value="${bank.id}"></td>
+          <td class="batch-col"><input type="checkbox" class="t2-row-checkbox" value="${bank.id}"></td>
           <td><strong class="t2-bank-name">${escapeHtml(bank.name)}</strong></td>
-          <td><span class="badge bg-primary-subtle text-primary">${counts.single || 0}</span></td>
-          <td><span class="badge bg-info-subtle text-info">${counts.multi || 0}</span></td>
-          <td><span class="badge bg-warning-subtle text-warning-emphasis">${counts.tf || 0}</span></td>
-          <td><span class="badge bg-success-subtle text-success">${counts.fill || 0}</span></td>
-          <td><span class="badge bg-secondary-subtle text-secondary">${counts.essay || 0}</span></td>
+          <td><span class="type-badge type-badge--single">${counts.single || 0}</span></td>
+          <td><span class="type-badge type-badge--multi">${counts.multi || 0}</span></td>
+          <td><span class="type-badge type-badge--tf">${counts.tf || 0}</span></td>
+          <td><span class="type-badge type-badge--fill">${counts.fill || 0}</span></td>
+          <td><span class="type-badge type-badge--essay">${counts.essay || 0}</span></td>
           <td class="text-nowrap">
-            <button class="btn btn-sm btn-outline-info btn-icon-sm me-1" title="查看" onclick="location.hash='#/t2/view/${bank.id}'"><i class="bi bi-eye"></i></button>
-            <button class="btn btn-sm btn-outline-secondary btn-icon-sm me-1" title="导出" onclick="t2ExportWithConfirm(${bank.id}, '${escapeHtml(bank.name)}')"><i class="bi bi-download"></i></button>
+            <button class="btn btn-outline-secondary btn-icon-sm me-1" title="查看" onclick="location.hash='#/t2/view/${bank.id}'"><i class="bi bi-eye"></i></button>
+            <button class="btn btn-outline-secondary btn-icon-sm me-1" title="导出" onclick="t2ExportWithConfirm(${bank.id}, '${escapeHtml(bank.name)}')"><i class="bi bi-download"></i></button>
             ${isAdminUser ? `
-            <button class="btn btn-sm btn-outline-danger btn-icon-sm" title="删除" data-delete-bank="${bank.id}" data-delete-name="${escapeHtml(bank.name)}"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-outline-danger btn-icon-sm" title="删除" data-delete-bank="${bank.id}" data-delete-name="${escapeHtml(bank.name)}"><i class="bi bi-trash"></i></button>
             ` : ''}
           </td>
         </tr>`;
@@ -48,9 +48,24 @@ const _t2BanksPage = {
 
     container.innerHTML = `
       <div class="content-narrow">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h4 style="color:#1a1a1a"><i class="bi bi-collection me-2"></i>题库集</h4>
-          <div class="d-flex gap-2">
+        <header class="page-header">
+          <div class="page-header__title">
+            <i class="bi bi-collection"></i>
+            <h3>题库集</h3>
+            <span class="subtitle">共 ${total} 个题库</span>
+          </div>
+          <div class="page-header__index">
+            <strong>${String(total).padStart(2, '0')}</strong>
+            <span>BANKS</span>
+          </div>
+        </header>
+
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+          <div class="input-group" style="max-width:360px">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="t2Search" placeholder="搜索题库名称…" value="${escapeHtml(t2SearchQuery)}">
+          </div>
+          <div class="ms-auto d-flex gap-2">
             ${isAdminUser ? `
             <button class="btn btn-danger btn-sm" id="batchDeleteBtn" onclick="t2BatchDelete()"><i class="bi bi-trash me-1"></i>批量删除</button>
             ` : ''}
@@ -59,25 +74,18 @@ const _t2BanksPage = {
           </div>
         </div>
 
-        <div class="mb-3">
-          <div class="input-group">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" id="t2Search" placeholder="搜索题库名称..." value="${escapeHtml(t2SearchQuery)}">
-          </div>
-        </div>
-
         <div class="table-page-wrapper">
           <div class="table-container">
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th class="batch-col show"><input type="checkbox" id="t2SelectAll" onchange="t2ToggleAll(this)"></th>
+                  <th class="batch-col"><input type="checkbox" id="t2SelectAll" onchange="t2ToggleAll(this)"></th>
                   <th>题库名称</th>
-                  <th>单选题</th>
-                  <th>多选题</th>
-                  <th>判断题</th>
-                  <th>填空题</th>
-                  <th>问答题</th>
+                  <th>单选</th>
+                  <th>多选</th>
+                  <th>判断</th>
+                  <th>填空</th>
+                  <th>问答</th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -122,21 +130,32 @@ const _t2BanksPage = {
 
     container.innerHTML = `
       <div class="content-narrow">
-        <h4 class="mb-3" style="color:#1a1a1a"><i class="bi bi-plus-circle me-2"></i>新增题库</h4>
+        <header class="page-header">
+          <div class="page-header__title">
+            <i class="bi bi-plus-circle"></i>
+            <h3>新增题库</h3>
+            <span class="subtitle">从 Excel 模板导入题目</span>
+          </div>
+          <div class="page-header__index">
+            <strong>＋ / 02</strong>
+            <span>NEW BANK</span>
+          </div>
+        </header>
+
         <div class="card mb-3">
           <div class="card-body">
-            <h6>步骤 1：下载标准模板</h6>
-            <p class="text-muted small">请先下载标准 Excel 模板，按格式填写题目后上传。</p>
-            <button class="btn btn-outline-primary" onclick="generateTemplate()"><i class="bi bi-download me-1"></i>下载标准模板</button>
+            <div class="section-title"><h5>步骤 1 · 下载标准模板</h5></div>
+            <p style="color:var(--ink-mid);font-size:0.9rem;margin-bottom:var(--s-3)">请先下载标准 Excel 模板，按格式填写题目后上传。</p>
+            <button class="btn btn-secondary" onclick="generateTemplate()"><i class="bi bi-download me-1"></i>下载标准模板</button>
           </div>
         </div>
 
         <div class="card">
           <div class="card-body">
-            <h6>步骤 2：上传填写好的题库文件</h6>
+            <div class="section-title"><h5>步骤 2 · 上传填写好的题库文件</h5></div>
             <div class="drop-zone mb-3" id="t2DropZone">
-              <i class="bi bi-cloud-upload d-block mb-2"></i>
-              <p>拖拽 .xlsx 文件到此处，或点击选择文件</p>
+              <i class="bi bi-cloud-upload"></i>
+              <p class="drop-zone__text">拖拽 .xlsx 文件到此处，或点击选择文件</p>
               <input type="file" id="t2FileInput" accept=".xlsx,.xls" multiple style="display:none">
               <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('t2FileInput').click()">选择文件</button>
             </div>
@@ -154,11 +173,11 @@ const _t2BanksPage = {
 
     function updateFileList() {
       fileList.innerHTML = importFiles.map((f, i) => `
-        <div class="d-flex align-items-center gap-2 mb-2 p-2 bg-light rounded">
-          <i class="bi bi-file-earmark-excel text-success fs-5"></i>
+        <div class="d-flex align-items-center gap-2 mb-2 p-2" style="background:var(--paper-sunk);border:1px solid var(--rule)">
+          <i class="bi bi-file-earmark-excel" style="color:var(--success);font-size:1.2rem"></i>
           <span class="flex-grow-1">${escapeHtml(f.file.name)}</span>
           <input type="text" class="form-control form-control-sm" style="width:200px" value="${escapeHtml(f.name)}" placeholder="题库名称" data-import-name="${i}">
-          <button class="btn btn-sm btn-outline-danger btn-icon" data-remove="${i}"><i class="bi bi-x"></i></button>
+          <button class="btn btn-outline-danger btn-icon-sm" data-remove="${i}"><i class="bi bi-x"></i></button>
         </div>`).join('');
 
       importBtn.disabled = importFiles.length === 0;
