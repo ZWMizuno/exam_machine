@@ -149,6 +149,12 @@ function updateBreadcrumb(hash, params) {
 }
 
 function updateNavbarActive(hash) {
+  // New shuzhai sidebar (book-spine) — prefer this if present
+  if (typeof setActiveSpine === 'function') {
+    setActiveSpine(hash);
+    return;
+  }
+  // Legacy navbar fallback
   document.querySelectorAll('#navbar-links .nav-link').forEach(link => {
     link.classList.remove('active');
     const href = link.getAttribute('href');
