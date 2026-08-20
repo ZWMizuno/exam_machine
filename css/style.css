@@ -365,7 +365,7 @@ body {
 .book-card .book-logo {
   position: absolute;
   top: 6%;
-  left: 17%;                     /* 越过 14% 书脊带，落在封皮左上角 */
+  left: 24%;                     /* 越过 14% 书脊带，落在封皮左上角；与 top 等距 (考虑高宽比 0.62) */
   z-index: 4;
   /* 篆刻方印 — bank 名字首字 — 4th 色 (logo) 作印泥 */
   width: 1.85em;
