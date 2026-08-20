@@ -73,6 +73,9 @@ body {
     radial-gradient(ellipse at 80% 70%, rgba(217, 201, 154, 0.2) 0%, transparent 50%),
     radial-gradient(circle at 60% 20%, rgba(184, 137, 90, 0.06) 0%, transparent 25%),
     radial-gradient(circle at 30% 80%, rgba(184, 137, 90, 0.05) 0%, transparent 30%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* === Global a11y: visible focus ring only for keyboard nav (WCAG 2.4.7) === */
@@ -258,22 +261,46 @@ body {
   filter: brightness(1.1);
 }
 
+/* Active: NO hardcoded jade border. Use soft layered glow on the book cover itself,
+   so the highlight respects the spine's own color. */
 .sidebar-spine.active::before {
   right: 0;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.25),
-    inset 2px 0 6px rgba(0, 0, 0, 0.2),
-    0 6px 16px rgba(0, 0, 0, 0.5),
-    0 0 0 2px var(--jade);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    inset 2px 0 8px rgba(0, 0, 0, 0.25),
+    /* soft jade halo: 2 stacked transparent shadows, no hard ring */
+    0 0 18px 2px rgba(19, 96, 88, 0.45),
+    0 6px 20px rgba(0, 0, 0, 0.5);
+  animation: spineActive 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes spineActive {
+  from { box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15),
+    inset 2px 0 4px rgba(0, 0, 0, 0.15),
+    0 0 0 rgba(19, 96, 88, 0),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+  to   { box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    inset 2px 0 8px rgba(0, 0, 0, 0.25),
+    0 0 18px 2px rgba(19, 96, 88, 0.45),
+    0 6px 20px rgba(0, 0, 0, 0.5);
+  }
 }
 
 .sidebar-spine.active {
-  filter: brightness(1.15);
+  filter: brightness(1.15) drop-shadow(0 0 6px rgba(19, 96, 88, 0.25));
 }
 
 .sidebar-spine.active .sidebar-spine-label {
   color: #FFF9E6;
-  text-shadow: 0 0 4px var(--jade-light);
+  text-shadow: 0 0 6px rgba(255, 249, 230, 0.6);
+}
+
+.sidebar-spine:active {
+  transform: translateX(3px) scale(0.97);
+  transition: transform 0.08s ease;
 }
 
 /* User area at bottom of sidebar — horizontal layout, 44x44 touch target */
@@ -497,7 +524,7 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 .paper-card {
   background: var(--paper);
   border: 1px solid var(--color-border);
-  border-radius: 3px 14px 3px 14px;
+  border-radius: 12px;
   box-shadow: var(--shadow-paper);
   padding: 20px 24px;
   margin-bottom: 18px;
@@ -578,9 +605,10 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   text-transform: none;
   cursor: pointer;
   box-shadow: var(--shadow-stamp);
-  transition: all 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
   text-decoration: none !important;
   position: relative;
+  will-change: transform;
 }
 
 .btn-seal::before {
@@ -597,15 +625,18 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 
 .btn-seal:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-stamp-hover);
+  box-shadow:
+    var(--shadow-stamp-hover),
+    0 0 0 3px rgba(179, 58, 38, 0.15);
   background: #C4422C;
   border-color: #C4422C;
   color: #FFF9E6 !important;
 }
 
 .btn-seal:active {
-  transform: translateY(2px);
+  transform: translateY(2px) scale(0.96);
   box-shadow: 0 0 0 rgba(140, 50, 30, 0.6), 0 2px 4px rgba(140, 50, 30, 0.2);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
 .btn-seal:disabled,
@@ -684,8 +715,9 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 .btn-tag:hover::before { border-width: 0 12px 12px 0; }
 
 .btn-tag:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.96);
   box-shadow: inset 0 2px 4px rgba(92, 70, 50, 0.15);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
 /* ghost button (tertiary) */
@@ -968,7 +1000,7 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   padding: 20px 24px;
   background: var(--paper);
   border: 1px solid var(--color-border);
-  border-radius: 4px 16px 4px 16px;
+  border-radius: 12px;
   box-shadow: var(--shadow-paper);
   position: relative;
   overflow: hidden;
@@ -1027,11 +1059,11 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 .home-stat {
   background: var(--paper);
   border: 1px solid var(--color-border);
-  border-radius: 4px 12px 4px 12px;
+  border-radius: 12px;
   padding: 18px 20px;
   position: relative;
   box-shadow: var(--shadow-paper);
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
 }
 
@@ -1081,7 +1113,7 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 .home-recent-col {
   background: var(--paper);
   border: 1px solid var(--color-border);
-  border-radius: 3px 14px 3px 14px;
+  border-radius: 12px;
   padding: 16px 18px 18px;
   box-shadow: var(--shadow-paper);
   position: relative;
@@ -1208,12 +1240,12 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   padding: 18px 12px 14px;
   background: var(--paper);
   border: 1px solid var(--color-border);
-  border-radius: 4px 12px 4px 12px;
+  border-radius: 12px;
   cursor: pointer;
   text-decoration: none !important;
   color: var(--ink) !important;
   box-shadow: var(--shadow-paper);
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
 }
 
@@ -2405,6 +2437,64 @@ html { scroll-behavior: smooth; }
 ::-webkit-scrollbar-thumb { background: var(--paper-3); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-soft); }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================================================
+   Polish round 3 (impeccable + make-interfaces-feel-better)
+   ============================================================ */
+
+/* Headings: balanced wrap, no orphans */
+h1, h2, h3, h4, h5, h6, .page-header-title, .home-welcome-greeting, .bank-cover-title, .paper-card-title {
+  text-wrap: balance;
+}
+p, .home-welcome-date, .bank-cover-meta, .paper-card p, .toast-body {
+  text-wrap: pretty;
+}
+
+/* Stat number: lock line-height to prevent vertical jump on data arrival */
+.home-stat-num {
+  line-height: 1;
+  min-height: 1em;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+/* Tool seal: nudge icon optically (bootstrap-icons can sit 1px low) */
+.home-tool-seal i {
+  position: relative;
+  top: -1px;
+}
+.home-stat-icon {
+  position: relative;
+  top: -1px;
+}
+.home-welcome-seal {
+  /* center the single character with optical offset */
+  font-feature-settings: "kern" 1;
+  padding-bottom: 4px; /* optical center for 习 stroke */
+}
+
+/* Tooltip on icon-only buttons */
+.sidebar-logout[title], .sidebar-coin-badge[title] {
+  cursor: help;
+}
+
+/* Exit animations: modal & toast */
+.modal.fade .modal-dialog {
+  transform: translateY(-8px) scale(0.98);
+  transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.2s ease-out;
+}
+.modal.show .modal-dialog {
+  transform: translateY(0) scale(1);
+}
+
+.toast { transition: transform 0.25s ease-out, opacity 0.2s ease-out; }
+.toast.fade { opacity: 0; transform: translateY(-6px); }
+
+/* Question circle: subtle pop on hover (interaction feedback) */
+.question-circle:hover {
+  transform: scale(1.08);
+}
+.question-circle:active { transform: scale(0.94); }
 .streak-light {
   width: 18px;
   height: 18px;
