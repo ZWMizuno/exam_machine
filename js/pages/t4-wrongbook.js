@@ -111,7 +111,7 @@ const _t4WrongbookPage = {
         var bmText = getBookmarkTextColor(scheme.bookmark);
         html += '<div class="book-wrapper">' +
           '<div class="book-card" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + bmText + '" onclick="location.hash=\'#/t4/' + b.bankId + '\'">' +
-            '<div class="book-logo"><i class="bi bi-book-fill"></i></div>' +
+            '<div class="book-logo" aria-hidden="true">' + escapeHtml((b.bankName || '卷').trim().charAt(0) || '卷') + '</div>' +
             '<div class="book-body">' +
               '<div class="book-name">' + escapeHtml(b.bankName) + '</div>' +
                           '</div>' +
