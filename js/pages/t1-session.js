@@ -2,6 +2,10 @@
 
 const _t1SessionPage = {
   async render(container, params) {
+    // Reset sidebar state for every fresh session entry (flags persist across sessions)
+    _sidebarInitialized = false;
+    sidebarState._initialized = false;
+
     this._examExpired = false;
     const user = getCurrentUser();
 
