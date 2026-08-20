@@ -1,0 +1,20 @@
+{
+  "name": "exam_machine",
+  "version": "1.0.0",
+  "description": "> 一个完全运行在浏览器中的考试与练习系统，支持 Excel/Word 题库导入、错题本、自动评分、即时纠错等特性。无需后端，数据全部存在本地 IndexedDB。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZWMizuno/exam_machine.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ZWMizuno/exam_machine/issues"
+  },
+  "homepage": "https://github.com/ZWMizuno/exam_machine#readme",
+  "dependencies": {}
+}
