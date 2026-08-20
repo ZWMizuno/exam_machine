@@ -75,6 +75,7 @@ let t4DetailAllQuestions = [];
 let t4DetailQuestionsByType = {};
 let t4DetailCurrentIndex = 0;
 let t4DetailCollapsedTypes = {};
+let t4DetailSearchQuery = '';
 let _t4DetailInitialized = false;
 
 const _t4WrongbookPage = {
@@ -166,23 +167,68 @@ const _t4WrongbookPage = {
 
     const firstChar = (bank.name || '卷').trim().charAt(0) || '卷';
 
+    // 题型统计 (复用 t2/view 的 TYPE_META)
+    const TYPE_META = {
+      single: { label: '单选', color: 'var(--jade)', icon: '◉' },
+      multi:  { label: '多选', color: '#4A7B95',     icon: '◎' },
+      tf:     { label: '判断', color: 'var(--gold)',  icon: '⊕' },
+      fill:   { label: '填空', color: '#1B7A4E',     icon: '◇' },
+      essay:  { label: '问答', color: '#7C3AED',     icon: '✎' },
+    };
+    const counts = wrongQs.reduce((acc, q) => { acc[q.type] = (acc[q.type] || 0) + 1; return acc; }, {});
+    const statChips = [];
+    for (const [type, meta] of Object.entries(TYPE_META)) {
+      if (counts[type]) {
+        statChips.push(
+          `<span class="bank-cover-stat" style="--type-color:${meta.color}">
+            <span class="bank-cover-stat-mark">${meta.icon}</span>
+            <span class="bank-cover-stat-label">${meta.label}</span>
+            <strong>${counts[type]}</strong>
+          </span>`
+        );
+      }
+    }
+    const totalWrong = wrongQs.reduce((sum, q) => sum + (q.wrongCount || 1), 0);
+
     container.innerHTML = `
       <div class="bank-cover">
-        <div class="bank-cover-icon" style="background:var(--seal)">${escapeHtml(firstChar)}</div>
+        <div class="bank-cover-seal" aria-hidden="true">${escapeHtml(firstChar)}</div>
         <div class="bank-cover-text">
+          <div class="bank-cover-eyebrow">错  题  录  ·  拾  遗</div>
           <h2 class="bank-cover-title">《${escapeHtml(bank.name)}》错题本</h2>
-          <p class="bank-cover-meta" id="t4DetailCount">共 ${wrongQs.length} 道错题</p>
+          <p class="bank-cover-meta" id="t4DetailCount">共 <strong>${wrongQs.length}</strong> 道 · 累计错 <strong>${totalWrong}</strong> 次</p>
+          <div class="bank-cover-stats">${statChips.join('')}</div>
         </div>
       </div>
-      <div class="exam-layout exam-layout--no-scroll">
-        <div class="exam-sidebar-col">
-          <div class="exam-sidebar" id="t4DetailSidebar"></div>
+
+      <div class="t2-search-row">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="t4DetailSearch" placeholder="寻错 · 题干关键词..." value="${escapeHtml(t4DetailSearchQuery)}">
+          <button class="btn-icon-jade" id="t4ClearSearch" title="清空" style="${t4DetailSearchQuery ? '' : 'display:none'}">
+            <i class="bi bi-x"></i>
+          </button>
         </div>
-        <div class="exam-main-col">
+      </div>
+
+      <div class="exam-layout exam-layout--no-scroll">
+        <aside class="exam-sidebar-col">
+          <div class="exam-sidebar" id="t4DetailSidebar"></div>
+        </aside>
+        <section class="exam-main-col">
           <div class="exam-main-scroll">
             <div class="question-area" id="t4DetailMain"></div>
           </div>
-        </div>
+          <div class="exam-main-foot">
+            <div class="exam-pager">
+              <button class="btn-tag" id="t4DetailPrevBtn" ${t4DetailCurrentIndex === 0 ? 'disabled' : ''} title="上一题 (←)"><i class="bi bi-chevron-left"></i> 上一题</button>
+              <span class="exam-pager-counter" id="t4DetailPagerCount">${t4DetailCurrentIndex + 1} / ${wrongQs.length || 0}</span>
+              <button class="btn-tag" id="t4DetailNextBtn" ${t4DetailCurrentIndex === (wrongQs.length - 1) ? 'disabled' : ''} title="下一题 (→)">下一题 <i class="bi bi-chevron-right"></i></button>
+              <button class="btn-tag t4-remove-btn" id="t4DetailDeleteBtn" title="从错题本移除此题"><i class="bi bi-trash"></i> 移除</button>
+              <span class="t2-pager-hint"><i class="bi bi-keyboard"></i> ← / → 翻页</span>
+            </div>
+          </div>
+        </section>
       </div>`;
 
     this.initT4DetailSidebar();
@@ -211,6 +257,61 @@ const _t4WrongbookPage = {
       }
     };
     document.addEventListener('keydown', this._t4KeyHandler);
+
+    // Wire up search
+    this._t4BindSearch(bankId);
+  },
+
+  _t4BindSearch(bankId) {
+    const searchInput = document.getElementById('t4DetailSearch');
+    const clearBtn = document.getElementById('t4ClearSearch');
+    if (!searchInput) return;
+
+    const applyFilter = (rawQ) => {
+      const q = rawQ.trim().toLowerCase();
+      t4DetailSearchQuery = q;
+      if (clearBtn) clearBtn.style.display = q ? 'inline-flex' : 'none';
+
+      // Filter in place (no DB roundtrip needed for read-only search by content)
+      if (!q) {
+        // Reset to full list — we need to keep a snapshot
+        if (this._t4FullList && this._t4FullList.length) {
+          t4DetailAllQuestions = this._t4FullList.slice();
+          t4DetailQuestionsByType = {};
+          for (const t of QUESTION_TYPES) {
+            t4DetailQuestionsByType[t] = t4DetailAllQuestions.filter(x => x.type === t);
+          }
+        }
+      } else {
+        const filtered = (this._t4FullList || t4DetailAllQuestions).filter(wq => {
+          return (wq.content || '').toLowerCase().includes(q)
+            || (wq.options || []).some(o => (o || '').toLowerCase().includes(q));
+        });
+        t4DetailAllQuestions = filtered;
+        t4DetailQuestionsByType = {};
+        for (const t of QUESTION_TYPES) {
+          t4DetailQuestionsByType[t] = filtered.filter(x => x.type === t);
+        }
+      }
+      t4DetailCurrentIndex = 0;
+      _t4DetailInitialized = false;
+      const sidebar = document.getElementById('t4DetailSidebar');
+      if (sidebar) this.renderT4DetailSidebar(sidebar);
+      this.showT4DetailQuestion();
+    };
+
+    // Snapshot full list for search reset
+    if (!this._t4FullList || this._t4FullList.length !== t4DetailAllQuestions.length) {
+      this._t4FullList = t4DetailAllQuestions.slice();
+    }
+
+    searchInput.addEventListener('input', debounce((e) => applyFilter(e.target.value), 300));
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        applyFilter('');
+      });
+    }
   },
 
   // Show one question at a time, with prev/next navigation
@@ -237,39 +338,49 @@ const _t4WrongbookPage = {
     if (t4DetailCurrentIndex < 0) t4DetailCurrentIndex = 0;
 
     const wq = t4DetailAllQuestions[t4DetailCurrentIndex];
-    const isFirst = t4DetailCurrentIndex === 0;
-    const isLast = t4DetailCurrentIndex === total - 1;
+
+    // 卷面 — 题号印（带错次）+ 题干 + 答案朱批 + 解析笺
+    const answerText = formatAnswerForRead(wq);
+    const optionsHtml = renderReadOnlyOptions(wq);
+    const wrongCount = wq.wrongCount || 1;
+    const lastWrong = wq.lastWrongAt ? new Date(wq.lastWrongAt).toLocaleDateString('zh-CN') : '';
+    const explanationHtml = wq.explanation
+      ? `<div class="q-explanation">
+           <div class="q-explanation-label">解  笺</div>
+           <p>${escapeHtml(wq.explanation)}</p>
+         </div>`
+      : '';
 
     area.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <span class="text-muted">${t4DetailCurrentIndex + 1} / ${total}</span>
-        <button class="btn btn-sm btn-outline-danger btn-icon" id="t4DetailDeleteBtn" title="从错题本移除"><i class="bi bi-trash"></i></button>
-      </div>
-      ${renderQuestion({
-        id: wq.id,
-        questionId: wq.questionId,
-        type: wq.type,
-        number: wq.number,
-        content: wq.content,
-        options: wq.options,
-        answer: wq.answer,
-        fillBlankCount: wq.fillBlankCount,
-      }, {
-        showAnswer: true,
-        readOnly: true,
-        wrongCount: wq.wrongCount,
-        showDelete: false,
-        correctStreak: -1,
-        sessionNumber: wq.number,
-      })}
-      <div class="d-flex justify-content-between align-items-center mt-3">
-        <button class="btn btn-outline-primary" id="t4DetailPrevBtn" ${isFirst ? 'disabled' : ''}><i class="bi bi-chevron-left"></i> 上一题</button>
-        <span class="text-muted small">${t4DetailCurrentIndex + 1} / ${total}</span>
-        <button class="btn btn-outline-primary" id="t4DetailNextBtn" ${isLast ? 'disabled' : ''}>下一题 <i class="bi bi-chevron-right"></i></button>
-      </div>
-      <div class="text-center text-muted mt-2" style="font-size:0.8rem"><i class="bi bi-keyboard me-1"></i>键盘 ← → 键可切换题目</div>`;
+      <article class="q-page q-page--wrong">
+        <header class="q-page-head">
+          <div class="q-stamp q-stamp--wrong" aria-label="题号">
+            <span class="q-stamp-num">${t4DetailCurrentIndex + 1}</span>
+            <span class="q-stamp-label">第 ${t4DetailCurrentIndex + 1} 题</span>
+          </div>
+          <div class="q-page-meta">
+            <span class="q-wrong-badge" title="${wrongCount} 次答错${lastWrong ? '，最近 ' + lastWrong : ''}">
+              <i class="bi bi-x-circle-fill"></i> 错 ${wrongCount} 次
+            </span>
+            <span class="q-type-tag" data-type="${wq.type}">${(TYPE_LABELS[wq.type] || wq.type)}</span>
+            <span class="q-counter">${t4DetailCurrentIndex + 1} / ${total}</span>
+          </div>
+        </header>
 
-    // Delete handler
+        <div class="q-content">${escapeHtml(wq.content || '')}</div>
+
+        ${optionsHtml}
+
+        ${answerText ? `<div class="q-answer-line">
+          <span class="q-answer-mark">答</span>
+          <span class="q-answer-text">${escapeHtml(answerText)}</span>
+        </div>` : ''}
+
+        ${explanationHtml}
+      </article>
+    `;
+
+    // Delete handler (now lives in the pager)
     const delBtn = document.getElementById('t4DetailDeleteBtn');
     if (delBtn) {
       delBtn.addEventListener('click', async () => {
@@ -291,7 +402,10 @@ const _t4WrongbookPage = {
 
         // Update count
         const countEl = document.getElementById('t4DetailCount');
-        if (countEl) countEl.textContent = `共 ${t4DetailAllQuestions.length} 道错题`;
+        if (countEl) {
+          const totalWrong = t4DetailAllQuestions.reduce((s, q) => s + (q.wrongCount || 1), 0);
+          countEl.innerHTML = `共 <strong>${t4DetailAllQuestions.length}</strong> 道 · 累计错 <strong>${totalWrong}</strong> 次`;
+        }
 
         // Re-render sidebar and current question
         const sidebar = document.getElementById('t4DetailSidebar');
@@ -305,12 +419,19 @@ const _t4WrongbookPage = {
     // Prev/next buttons
     const prevBtn = document.getElementById('t4DetailPrevBtn');
     const nextBtn = document.getElementById('t4DetailNextBtn');
+    const updatePager = () => {
+      const idx = t4DetailCurrentIndex;
+      const totalN = t4DetailAllQuestions.length;
+      if (prevBtn) prevBtn.disabled = idx === 0;
+      if (nextBtn) nextBtn.disabled = idx === totalN - 1;
+      const pagerCount = document.getElementById('t4DetailPagerCount');
+      if (pagerCount) pagerCount.textContent = `${idx + 1} / ${totalN}`;
+    };
     if (prevBtn) {
       prevBtn.addEventListener('click', () => {
         if (t4DetailCurrentIndex > 0) {
           t4DetailCurrentIndex--;
           _t4WrongbookPage.showT4DetailQuestion();
-          // Update sidebar highlight
           const sidebar = document.getElementById('t4DetailSidebar');
           if (sidebar) _t4WrongbookPage.renderT4DetailSidebar(sidebar);
         }
@@ -321,12 +442,12 @@ const _t4WrongbookPage = {
         if (t4DetailCurrentIndex < t4DetailAllQuestions.length - 1) {
           t4DetailCurrentIndex++;
           _t4WrongbookPage.showT4DetailQuestion();
-          // Update sidebar highlight
           const sidebar = document.getElementById('t4DetailSidebar');
           if (sidebar) _t4WrongbookPage.renderT4DetailSidebar(sidebar);
         }
       });
     }
+    updatePager();
 
     // Update sidebar highlight
     const sidebar = document.getElementById('t4DetailSidebar');
@@ -382,23 +503,31 @@ const _t4WrongbookPage = {
     for (const [qtype, questions] of Object.entries(questionsByType)) {
       if (!questions || questions.length === 0) continue;
       const collapsed = t4DetailCollapsedTypes[qtype] ? ' collapsed' : '';
-      html += `<div class="type-section${collapsed}">
+      html += `<div class="type-section${collapsed}" data-type="${qtype}">
         <div class="type-header" data-toggle-type="${qtype}">
-          <span>${TYPE_LABELS_SHORT[qtype]} (${questions.length})</span>
-          <i class="bi bi-chevron-down"></i>
+          <span class="type-header-name">${TYPE_LABELS_SHORT[qtype]}</span>
+          <span class="type-header-count">${questions.length}</span>
+          <i class="bi bi-chevron-down type-header-arrow"></i>
         </div>
         <div class="type-body">
           ${questions.map(q => {
-            let cssClass = 'question-circle';
-            if (q.questionId === currentQid) cssClass += ' current';
-            return `<div class="${cssClass}" data-qid="${q.questionId}" title="#${q.number} — 错误${q.wrongCount}次">${q.number}</div>`;
+            const cssClass = (q.questionId === currentQid) ? 'question-circle current' : 'question-circle';
+            return `<div class="${cssClass}" data-qid="${q.questionId}" title="#${q.number} — 错${q.wrongCount || 1}次">${q.number}</div>`;
           }).join('')}
         </div>
       </div>`;
     }
 
 
-    container.innerHTML = `<h6 class="mb-3">错题导航</h6><div class="exam-sidebar-questions">${html}</div>`;
+    const totalInBook = t4DetailAllQuestions.length;
+    const totalWrong = t4DetailAllQuestions.reduce((s, q) => s + (q.wrongCount || 1), 0);
+    container.innerHTML = `
+      <header class="t2-toc-head">
+        <div class="t2-toc-eyebrow">错  题  录</div>
+        <div class="t2-toc-total">共 <strong>${totalInBook}</strong> · 错 <strong>${totalWrong}</strong> 次</div>
+      </header>
+      <div class="exam-sidebar-questions">${html}</div>
+    `;
 
     // Circle click handlers — navigate to the clicked question
     container.querySelectorAll('.question-circle').forEach(circle => {

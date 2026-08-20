@@ -2336,6 +2336,58 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   opacity: 0;
 }
 
+/* === T4 wrong book (错题本) — 错题印 + 错次徽章 === */
+.q-stamp--wrong {
+  background: var(--seal);
+  position: relative;
+}
+.q-stamp--wrong::before {
+  /* 错题印左上角小"错"字 */
+  content: '错';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--jade);
+  color: #FFF9E6;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.75rem;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.q-wrong-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--seal-bg);
+  color: var(--seal);
+  border: 1px solid var(--seal);
+  border-radius: 3px 10px 3px 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+}
+.q-wrong-badge i { font-size: 0.9rem; }
+
+.t4-remove-btn {
+  color: var(--seal) !important;
+  border-color: var(--seal) !important;
+  margin-left: 8px;
+}
+.t4-remove-btn:hover {
+  background: var(--seal) !important;
+  color: #FFF9E6 !important;
+}
+
 .exam-timer-bar {
   display: flex;
   align-items: center;
