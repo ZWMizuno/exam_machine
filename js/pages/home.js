@@ -74,7 +74,12 @@ const _homePage = {
     const safe = (fn, elId) => {
       Promise.resolve()
         .then(fn)
-        .then(v => { const el = document.getElementById(elId); if (el) el.textContent = v; })
+        .then(v => {
+          const el = document.getElementById(elId);
+          if (!el) return;
+          el.textContent = v;
+          el.classList.add('loaded');
+        })
         .catch(() => { /* leave dash */ });
     };
     safe(() => db.banks.count(), 'stat-bank');

@@ -2271,6 +2271,140 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   margin: -20px -24px 16px;
   border-bottom: 1px solid var(--color-border);
 }
+
+/* ============================================================
+   Polish — micro details (round 2)
+   ============================================================ */
+
+/* === Stat number pop-in when data arrives === */
+@keyframes numIn {
+  0%   { opacity: 0; transform: translateY(4px) scale(0.85); color: var(--seal); }
+  60%  { transform: translateY(0) scale(1.08); }
+  100% { opacity: 1; transform: translateY(0) scale(1); color: var(--ink); }
+}
+.home-stat-num.loaded {
+  animation: numIn 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* === Route transition: subtle fade on main area === */
+#app-content {
+  animation: routeIn 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes routeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* === Toast progress bar (slim 朱砂) === */
+.toast {
+  background: var(--paper) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 4px 12px 4px 12px !important;
+  box-shadow: var(--shadow-paper-hover) !important;
+  overflow: hidden;
+  font-family: var(--font-body);
+  color: var(--ink);
+}
+.toast::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 2px;
+  background: currentColor;
+  width: 100%;
+  animation: toastProgress 3s linear forwards;
+  opacity: 0.5;
+}
+.toast-success { color: var(--jade); }
+.toast-error   { color: var(--seal); }
+.toast-warning { color: var(--gold); }
+.toast-info    { color: #4A7B95; }
+@keyframes toastProgress {
+  from { transform: scaleX(1); transform-origin: left; }
+  to   { transform: scaleX(0); transform-origin: left; }
+}
+.toast-body { color: var(--ink); font-weight: 500; padding: 12px 14px; }
+
+/* === Modal paper feel === */
+.modal-content {
+  background: var(--paper) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 6px 18px 6px 18px !important;
+  box-shadow: 0 20px 60px rgba(92, 70, 50, 0.3) !important;
+  position: relative;
+  overflow: hidden;
+}
+.modal-content::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 28px; height: 28px;
+  background: linear-gradient(225deg, transparent 50%, var(--paper-2) 50%, var(--paper-3) 100%);
+  border-bottom-left-radius: 8px;
+  box-shadow: -1px 1px 1px rgba(92, 70, 50, 0.12);
+  pointer-events: none;
+}
+.modal-header { border-bottom: 1px solid var(--color-border); }
+.modal-header .modal-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.05em;
+}
+.modal-footer { border-top: 1px solid var(--color-border); }
+.btn-close { filter: sepia(20%) saturate(60%); }
+
+/* === Empty state (纸卡 + 手写体引导) === */
+.empty-state {
+  text-align: center;
+  padding: 56px 24px;
+  font-family: var(--font-hand);
+  color: var(--ink-faint);
+}
+.empty-state .bi {
+  font-size: 3rem;
+  color: var(--paper-3);
+  display: block;
+  margin-bottom: 12px;
+}
+.empty-state h5 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 8px;
+  letter-spacing: 0.05em;
+}
+.empty-state p { margin: 0 0 16px; font-size: 1.05rem; }
+
+/* === A11y: visible focus on .nav-tabs and .nav-link === */
+.nav-tabs .nav-link:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* === Question circle in t4 sidebar: when current, stronger ring === */
+.question-circle.current {
+  background: var(--seal) !important;
+  color: #FFF9E6 !important;
+  border-color: var(--seal) !important;
+  box-shadow: 0 0 0 3px var(--seal-bg);
+}
+
+/* === Page header location icon: subtle hover === */
+.page-header-loc {
+  transition: color 0.15s ease;
+}
+.page-header-loc:hover { color: var(--ink) !important; }
+
+/* === Smooth scroll for hash navigation === */
+html { scroll-behavior: smooth; }
+
+/* === Better scrollbar on webkit (consistency) === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--paper-3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-soft); }
+::-webkit-scrollbar-track { background: transparent; }
 .streak-light {
   width: 18px;
   height: 18px;
