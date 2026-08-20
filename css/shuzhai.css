@@ -2104,6 +2104,173 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   }
   .home-welcome-greeting { background: none; }
 }
+
+/* ============================================================
+   Bug fixes (from user comments)
+   ============================================================ */
+
+/* === Comment 1 & 2: sidebar — click highlight + no horizontal scrollbar === */
+#app-navbar { overflow-x: hidden; }
+.sidebar-spines { overflow-x: hidden; }
+
+/* Make active state more prominent (was easy to miss on click) */
+.sidebar-spine.active {
+  box-shadow: inset 4px 0 0 0 var(--jade), 0 0 0 1px var(--jade);
+}
+.sidebar-spine.active::before {
+  right: 0;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+    inset 2px 0 6px rgba(0, 0, 0, 0.2),
+    0 6px 16px rgba(0, 0, 0, 0.5),
+    0 0 0 2px var(--jade-light);
+}
+
+/* === Comment 3: t1/exam 背景太空洞 — 加大主卡 + 纸面装饰 === */
+.wizard-step-content {
+  background: var(--paper);
+  border: 1px solid var(--color-border);
+  border-radius: 3px 14px 3px 14px;
+  box-shadow: var(--shadow-paper);
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+}
+.wizard-step-content::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 22px; height: 22px;
+  background: linear-gradient(225deg, transparent 50%, var(--paper-2) 50%, var(--paper-3) 100%);
+  border-bottom-left-radius: 6px;
+  box-shadow: -1px 1px 1px rgba(92, 70, 50, 0.12);
+  pointer-events: none;
+}
+.wizard-step-content::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, var(--seal-bg) 0%, transparent 70%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* === Comment 4: 新拟模式 button — override Bootstrap nav-link blue === */
+.nav-tabs .nav-link {
+  color: var(--ink-soft) !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  border: none !important;
+  padding: 8px 16px;
+  position: relative;
+  background: transparent !important;
+}
+.nav-tabs .nav-link:hover {
+  color: var(--ink) !important;
+  background: var(--paper-2) !important;
+  border-radius: 4px 4px 0 0;
+}
+.nav-tabs .nav-link.active {
+  color: var(--seal) !important;
+  background: transparent !important;
+  font-weight: 700;
+}
+.nav-tabs .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 16px; right: 16px;
+  height: 3px;
+  background: var(--seal);
+  border-radius: 2px 2px 0 0;
+}
+
+/* === Comment 5: form fields — Bootstrap blue → paper aesthetic === */
+.form-control, .form-select {
+  background: var(--paper) !important;
+  border: 1.5px solid var(--color-border) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-body);
+  font-weight: 500;
+  border-radius: 4px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--jade) !important;
+  box-shadow: 0 0 0 3px var(--jade-bg) !important;
+  outline: none;
+}
+.form-control::placeholder { color: var(--ink-faint); font-family: var(--font-hand); }
+
+.form-check-input {
+  background-color: var(--paper) !important;
+  border: 1.5px solid var(--ink-soft) !important;
+  border-radius: 3px;
+}
+.form-check-input:checked {
+  background-color: var(--jade) !important;
+  border-color: var(--jade) !important;
+}
+.form-check-input:focus {
+  border-color: var(--jade) !important;
+  box-shadow: 0 0 0 3px var(--jade-bg) !important;
+}
+.form-check-input[type="checkbox"]:checked {
+  background-image: none;
+  position: relative;
+}
+.form-check-input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: #FFF9E6;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.form-check-input[type="radio"]:checked {
+  background-image: none;
+  position: relative;
+}
+.form-check-input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px; height: 8px;
+  background: #FFF9E6;
+  border-radius: 50%;
+}
+
+.form-switch .form-check-input {
+  background-image: none;
+  background-color: var(--paper-3) !important;
+  border-color: var(--paper-3) !important;
+}
+.form-switch .form-check-input:checked {
+  background-color: var(--jade) !important;
+  border-color: var(--jade) !important;
+}
+
+.input-group-text {
+  background: var(--paper-2) !important;
+  border: 1.5px solid var(--color-border) !important;
+  color: var(--ink-soft) !important;
+}
+
+/* === Comment 6 & 7: bank-cover h2 covered — make it sticky === */
+.bank-cover {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: linear-gradient(180deg, var(--paper) 80%, transparent 100%);
+  padding: 20px 24px 16px;
+  margin: -20px -24px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
 .streak-light {
   width: 18px;
   height: 18px;
