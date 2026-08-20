@@ -276,9 +276,10 @@ body {
 .book-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 48px 24px;
+  gap: 56px 28px;
   position: relative;
   align-content: start;
+  padding: 8px 4px 24px;
 }
 
 /* Book wrapper — fills cell, flex centers book+shelf as a unit */
@@ -287,224 +288,299 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;   /* center the unit vertically in the cell */
+  justify-content: flex-end;   /* anchor books to the shelf */
   width: 100%;
-  height: 100%;
+  min-height: 280px;
 }
 
-/* Individual book — strict 120:186 ratio, centered in cell */
+/* ============================================================
+   线装书 (Thread-bound Chinese book) — t4 错题本 书本样式
+   --------------------------------------------------------------
+   元素语义映射：
+     .book-card       封皮 (the cover, 主体)
+     .book-card::before  书脊带 (left spine band, with thread stitches)
+     .book-card::after   题签 (title slip on top, horizontal label)
+     .book-logo       印章 (seal stamp, red square)
+     .book-name       垂直接题 (vertical main title)
+     .book-count      卷数 (small count text below name)
+     .book-bookmark   丝带 (silk ribbon hanging from top)
+     .book-shelf      书架 (wooden plank)
+     .book-label      笺纸 (paper slip below shelf with skin name)
+   尺寸策略：clamp(120px, 14vw, 200px) + aspect-ratio,em 字号
+   -------------------------------------------------------------- */
+
+/* === 封皮 (book cover) === */
 .book-card {
   position: relative;
-  z-index: 1;
-  /*
-    Height = 80% of grid row height.
-    Width = Height / 1.55 (exact 120:186 ratio).
-    Centered in cell by book-wrapper flex justify-content: center.
-  */
-  height: 80%;
-  width: calc((100vh - 212px) / 2 * 0.8 / 1.55 - 20px);
-  aspect-ratio: 120 / 186;
-  max-width: 100%;
+  z-index: 2;
+  width: clamp(120px, 14vw, 200px);
+  aspect-ratio: 0.62 / 1;     /* 竖长方形，仿线装书 */
   cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  background: var(--book);
-  border-radius: 4px 10px 10px 4px;
+  transition: transform 0.32s cubic-bezier(.2,.7,.3,1.1), box-shadow 0.32s ease;
+  background:
+    /* 纤维纸纹 — 极淡噪点 */
+    radial-gradient(circle at 25% 20%, rgba(255,255,255,0.08) 0, transparent 35%),
+    radial-gradient(circle at 70% 65%, rgba(0,0,0,0.06) 0, transparent 40%),
+    var(--book);
+  border-radius: 2px 4px 4px 2px;
+  /* 仿纸边不齐的微小不规则 */
+  clip-path: polygon(
+    0% 0.3%, 0.4% 0%, 99.5% 0.2%, 100% 0.4%,
+    99.7% 99.5%, 100% 100%, 0.5% 99.8%, 0% 99.4%
+  );
   box-shadow:
-    0 4px 12px rgba(0,0,0,0.18),
-    0 1px 3px rgba(0,0,0,0.1),
-    inset 0 1px 0 rgba(255,255,255,0.08);
+    /* 落到书架上的软影 */
+    0 6px 14px rgba(40, 25, 10, 0.28),
+    0 2px 4px rgba(40, 25, 10, 0.18),
+    /* 纸张内白边 */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    /* 书脊处微凹 */
+    inset 3px 0 4px -2px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
-  overflow: visible;
-  border-right: 3px solid rgba(255,255,255,0.08);
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
 }
+
+/* === 书脊带 + 装订线 (spine band with stitches) === */
 .book-card::before {
   content: '';
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  width: 0.5em;
-  background: rgba(255,255,255,0.1);
-  border-radius: 4px 0 0 4px;
+  width: 14%;
+  background:
+    linear-gradient(90deg,
+      rgba(0,0,0,0.18) 0%,
+      rgba(0,0,0,0.05) 50%,
+      rgba(0,0,0,0.0) 100%
+    ),
+    rgba(0, 0, 0, 0.12);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 1;
 }
-.book-card:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 10px 24px rgba(0,0,0,0.22),
-    0 2px 6px rgba(0,0,0,0.12);
-}
-
-
-.book-skin-tag {
+/* 装订线眼 — 4 个圆孔 */
+.book-card::after {
+  content: '';
   position: absolute;
-  right: 3px;
-  top: 6px;
-  z-index: 10;
-  width: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.18);
-  height: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.18);
-  border-radius: 50%;
-  background: linear-gradient(145deg, #c8a060, #e8c870, #f5d878, #c8a060);
-  border: 1.5px solid #8b6020;
-  box-shadow:
-    0 1px 4px rgba(0,0,0,0.35),
-    inset 0 1px 3px rgba(255,230,130,0.5),
-    inset 0 -1px 3px rgba(80,40,0,0.35);
-  cursor: pointer;
+  left: 0; top: 0; bottom: 0;
+  width: 14%;
+  z-index: 2;
+  background-image:
+    radial-gradient(circle at 50% 14%, rgba(0,0,0,0.55) 0 1.4px, transparent 2px),
+    radial-gradient(circle at 50% 38%, rgba(0,0,0,0.55) 0 1.4px, transparent 2px),
+    radial-gradient(circle at 50% 62%, rgba(0,0,0,0.55) 0 1.4px, transparent 2px),
+    radial-gradient(circle at 50% 86%, rgba(0,0,0,0.55) 0 1.4px, transparent 2px);
+}
+
+/* === 题签 (title slip on cover top) === */
+.book-card .book-logo {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  /* 印章 (square seal) */
+  width: 1.8em;
+  height: 1.8em;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.book-skin-tag:hover {
-  box-shadow:
-    0 3px 8px rgba(0,0,0,0.4),
-    inset 0 1px 3px rgba(255,230,130,0.5),
-    inset 0 -1px 3px rgba(80,40,0,0.35);
-}
-.book-skin-tag i {
-  font-size: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.09);
-  color: #3a2010;
-  filter: drop-shadow(0 1px 1px rgba(255,220,100,0.6));
-}
-
-/* Static shelf — sibling of book-card, 1.5× book width */
-.book-shelf {
-  position: relative;
-  align-self: center;
-  width: calc(((100vh - 212px) / 2 * 0.8 / 1.55 - 20px) * 1.5);
-  height: 0.5em;
-  cursor: default;
-  background: linear-gradient(
-    180deg,
-    #E8E0D8 0%,
-    #C8BCB0 35%,
-    #B8A898 60%,
-    #A89888 100%
-  );
+  background: var(--bookmark);
+  color: var(--bm-text);
+  font-size: 1.05em;
   border-radius: 2px;
   box-shadow:
-    0 3px 8px rgba(0,0,0,0.18),
-    0 1px 2px rgba(0,0,0,0.1),
-    inset 0 1px 0 rgba(255,255,255,0.4);
-  z-index: 0;
+    0 0 0 2px rgba(255, 255, 255, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+  filter: contrast(1.05) saturate(1.1);
+  line-height: 1;
+  transform: translateX(-50%) rotate(-3deg);
+  transform-origin: center;
+  transition: transform 0.3s ease;
+}
+.book-card:hover .book-logo {
+  transform: translateX(-50%) rotate(-3deg) scale(1.08);
 }
 
-/* 名牌 — 位于 shelf 下方 */
+/* === 书名 (vertical title) === */
+.book-card .book-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28% 0.5em 18% 0.5em;
+  z-index: 1;
+  position: relative;
+}
+.book-card .book-name {
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', 'STZhongsong', 'SimSun', serif;
+  font-weight: 700;
+  /* 标题用 em，相对书宽 */
+  font-size: 1.05em;
+  line-height: 1.25;
+  color: var(--text);
+  text-align: center;
+  letter-spacing: 0.05em;
+  writing-mode: vertical-rl;       /* 竖排 — 仿古籍题名 */
+  text-orientation: upright;
+  margin: 0 auto;
+  max-height: 75%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+.book-card .book-count {
+  position: absolute;
+  bottom: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Patrick Hand', 'Caveat', 'KaiTi', '楷体', serif;
+  font-weight: 400;
+  font-size: 0.7em;
+  color: var(--text);
+  opacity: 0.85;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* === 丝带 (ribbon bookmark hanging from top) === */
+.book-card .book-bookmark {
+  position: absolute;
+  top: -2%;
+  right: 12%;
+  z-index: 5;
+  width: 10%;
+  min-width: 8px;
+  height: 24%;
+  background: linear-gradient(180deg, var(--bookmark) 0%, var(--bookmark) 80%, rgba(0,0,0,0.2) 100%);
+  clip-path: polygon(
+    0% 0%, 100% 0%, 100% 100%,
+    62% 88%, 50% 100%, 38% 88%, 0% 100%
+  );
+  filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.3));
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+.book-card:hover .book-bookmark {
+  transform: translateY(2px);
+  filter: drop-shadow(1px 3px 3px rgba(0, 0, 0, 0.4));
+}
+
+/* === 书架 (wooden plank) === */
+.book-shelf {
+  position: relative;
+  z-index: 1;
+  width: calc(clamp(120px, 14vw, 200px) * 1.35);
+  height: 8px;
+  margin-top: -1px;
+  background:
+    /* 木纹细缝 */
+    repeating-linear-gradient(90deg,
+      rgba(0, 0, 0, 0.12) 0 1px,
+      transparent 1px 18px
+    ),
+    linear-gradient(180deg,
+      #B8915A 0%,
+      #8C6738 30%,
+      #6B4A22 65%,
+      #4D3210 100%
+    );
+  border-radius: 1px 1px 2px 2px;
+  box-shadow:
+    0 4px 10px rgba(40, 25, 10, 0.35),
+    0 1px 2px rgba(40, 25, 10, 0.2),
+    inset 0 1px 0 rgba(255, 220, 170, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
+.book-shelf::before {
+  /* 木架前沿浅边 */
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(180deg, rgba(255, 230, 180, 0.5), transparent);
+  border-radius: 1px 1px 0 0;
+}
+
+/* === 名牌笺纸 (skin name paper slip) === */
 .book-label {
-  margin-top: 8px;
+  margin-top: 10px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: linear-gradient(145deg, #c8a060, #e8c870, #f5d878, #c8a060);
-  border: 1.5px solid #8b6020;
+  padding: 3px 10px;
+  background:
+    linear-gradient(180deg, #FAF1DA 0%, #EFE0BE 100%);
+  color: #4A2E12;
+  border: 1px solid #B89763;
+  border-radius: 1px;
   box-shadow:
-    0 3px 10px rgba(0,0,0,0.5),
-    inset 0 1px 3px rgba(255,230,130,0.5),
-    inset 0 -1px 3px rgba(80,40,0,0.35);
+    0 2px 4px rgba(60, 35, 10, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  font-family: 'SourceHanSansOLD-Heavy', 'Noto Sans CJK SC', sans-serif;
-  font-weight: 900;
-  font-size: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.08);
-  color: #3a2010;
-  letter-spacing: 0.05em;
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', 'KaiTi', '楷体', serif;
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
   white-space: nowrap;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
-.book-label i {
-  font-size: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.10);
-  color: #3a2010;
-  filter: drop-shadow(0 1px 1px rgba(255,220,100,0.6));
-}
-
-/* Logo — font-size derived from book width (same calc as card width), left in % of book width */
-.book-logo {
+.book-label::before {
+  /* 笺纸的小红点装饰 — 仿题签上的红印 */
+  content: '';
   position: absolute;
-  top: 4%;
-  left: 10%;
-  /* font-size = 20% of book width, same calc as card width */
-  font-size: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.20);
-  color: var(--logo);
-  z-index: 3;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
-  line-height: 1;
+  top: 2px;
+  right: 4px;
+  width: 4px;
+  height: 4px;
+  background: var(--seal, #B33A26);
+  border-radius: 50%;
+  opacity: 0.6;
+}
+.book-label:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 8px rgba(60, 35, 10, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
-/* Body — text area */
-.book-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 0.5rem;
-  z-index: 1;
-}
-.book-body .book-name {
-  font-family: 'SourceHanSansOLD-Heavy', 'Noto Sans CJK SC', sans-serif;
-  font-weight: 900;
-  font-size: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.12);
-  color: var(--text);
-  text-align: center;
-  line-height: 1.3;
-  margin-bottom: 0.3rem;
-  letter-spacing: 0.01em;
-  word-break: break-all;
-  max-width: 100%;
-  overflow-wrap: break-word;
-}
-.book-body .book-count {
-  font-family: 'SourceHanSansOLD-ExtraLight', 'Noto Sans CJK SC', sans-serif;
-  font-weight: 300;
-  font-size: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.08);
-  color: var(--text);
-  opacity: 0.75;
+/* === Hover: 整书轻抬起 + 印章轻旋 + 阴影加深 === */
+.book-wrapper:hover .book-card {
+  transform: translateY(-6px);
+  box-shadow:
+    0 14px 26px rgba(40, 25, 10, 0.36),
+    0 4px 8px rgba(40, 25, 10, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 3px 0 4px -2px rgba(0, 0, 0, 0.22);
 }
 
-/* Bookmark — size derived from book width (same calc as card), left in % of book width */
-.book-bookmark {
-  position: absolute;
-  top: 100%;
-  left: 10%;
-  /* width = 12% of book width, height proportional */
-  width: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.12);
-  height: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.22);
-  background: var(--bookmark);
-  z-index: 2;
-  clip-path: polygon(
-    0% 0%,
-    100% 0%,
-    100% 45%,
-    50% 100%,
-    0% 45%
-  );
-  filter: drop-shadow(1.25px 2.5px 2.5px rgba(0,0,0,0.25));
+/* === Responsive === */
+@media (max-width: 1100px) {
+  .book-grid { grid-template-columns: repeat(3, 1fr); gap: 48px 22px; }
 }
-
-@media (max-width: 992px) {
-  .book-grid {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(4, calc((100vh - 212px) / 4 - 20px));
-    gap: 40px 24px;
-  }
+@media (max-width: 760px) {
+  .book-grid { grid-template-columns: repeat(2, 1fr); gap: 44px 18px; }
+  .book-card { width: clamp(110px, 30vw, 160px); }
+  .book-shelf { width: calc(clamp(110px, 30vw, 160px) * 1.35); }
 }
-@media (max-width: 576px) {
-  .book-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+@media (max-width: 460px) {
+  .book-grid { grid-template-columns: 1fr; gap: 40px; }
+  .book-wrapper { min-height: 0; }
+  .book-card { width: clamp(140px, 45vw, 200px); margin: 0 auto; }
+  .book-shelf { width: calc(clamp(140px, 45vw, 200px) * 1.35); margin: -1px auto 0; }
+  .book-label { margin: 10px auto 0; }
 }
 
 
 /* Body — text area */
-.book-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 0.5rem;
-  z-index: 1;
-}
-
-/* Bookmark — elegant dovetail, single smooth taper to center point */
 
 /* === Buttons === */
 .btn { border-radius: var(--radius); transition: var(--transition); }
