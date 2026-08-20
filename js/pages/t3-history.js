@@ -53,7 +53,7 @@ const _t3HistoryPage = {
       const emptyIcon = total === 0 ? 'bi-clock-history' : 'bi-search';
       const emptyAction = total === 0 && !hasFilter
         ? '<a href="#/t1" class="btn-seal">去贡院</a>'
-        : '<button class="btn-tag" id="t3ClearFilters"><i class="bi bi-x-circle"></i> 清空筛选</button>';
+        : '';
 
       container.innerHTML = `
         <div class="content-narrow">
@@ -73,12 +73,6 @@ const _t3HistoryPage = {
       document.getElementById('t3FilterType').addEventListener('change', (e) => {
         t3FilterType = e.target.value; t3CurrentPage = 1; this.render(container);
       });
-      const clearBtn = document.getElementById('t3ClearFilters');
-      if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-          t3FilterBank = ''; t3FilterType = 'all'; t3CurrentPage = 1; this.render(container);
-        });
-      }
       return;
     }
 
