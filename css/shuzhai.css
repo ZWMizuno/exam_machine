@@ -261,17 +261,12 @@ body {
   filter: brightness(1.1);
 }
 
-/* Active: NO hardcoded jade border. Use soft layered glow on the book cover itself,
-   so the highlight respects the spine's own color. KEEP the book size — don't expand. */
+/* Active: NO highlight box. User wants only font highlight (text color).
+   KEEP the book size — don't expand. Drop all glow/box-shadow. */
 .sidebar-spine.active::before {
   right: 6px; /* match hover width, no expansion */
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
-    inset 2px 0 8px rgba(0, 0, 0, 0.25),
-    /* soft jade halo: 2 stacked transparent shadows, no hard ring */
-    0 0 14px 2px rgba(19, 96, 88, 0.4),
-    0 4px 12px rgba(0, 0, 0, 0.45);
-  animation: spineActive 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    inset 2px 0 8px rgba(0, 0, 0, 0.25);
 }
 
 @keyframes spineActive {
@@ -2711,18 +2706,9 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 #app-navbar { overflow-x: hidden; }
 .sidebar-spines { overflow-x: hidden; }
 
-/* Make active state more prominent (was easy to miss on click) */
-.sidebar-spine.active {
-  box-shadow: inset 4px 0 0 0 var(--jade), 0 0 0 1px var(--jade);
-}
-.sidebar-spine.active::before {
-  right: 0;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.3),
-    inset 2px 0 6px rgba(0, 0, 0, 0.2),
-    0 6px 16px rgba(0, 0, 0, 0.5),
-    0 0 0 2px var(--jade-light);
-}
+/* Active — 仅靠 .sidebar-spine-label 字色高亮，不要 box/halo 框 */
+.sidebar-spine.active { /* 删 box-shadow — 保留字色变化 */ }
+.sidebar-spine.active::before { right: 0; box-shadow: inset 2px 0 6px rgba(0, 0, 0, 0.2); }
 
 /* === Comment 3: t1/exam 背景太空洞 — 加大主卡 + 纸面装饰 === */
 .wizard-step-content {
