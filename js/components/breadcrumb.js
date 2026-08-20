@@ -11,8 +11,8 @@ const PAGE_META = {
   '/t2/add':     { title: '卷宗',     sub: '新增题库' },
   '/t2/view':    { title: '卷宗',     sub: '查看题库' },
   '/t3':         { title: '履历',     sub: '历史记录' },
-  '/t4':         { title: '错题',     sub: '错题架' },
-  '/t4/review':  { title: '错题',     sub: '扫盲' },
+  '/t4':         { title: '拾遗',     sub: '拾遗录' },
+  '/t4/review':  { title: '拾遗',     sub: '扫盲' },
   '/t5':         { title: '拟卷',     sub: '试卷生成' },
   '/t6':         { title: '书铺',     sub: '皮肤商店' },
 };
