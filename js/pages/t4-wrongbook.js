@@ -96,11 +96,11 @@ const _t4WrongbookPage = {
     const books = await getDistinctWrongBanks(user.id);
 
     if (books.length === 0) {
-      container.innerHTML = '<div class="empty-state"><i class="bi bi-book"></i><p>暂无错题，去考试或练习吧！</p><a href="#/t1" class="btn btn-primary">去考试/练习</a></div>';
+      container.innerHTML = `<div class="empty-state"><i class="bi bi-book"></i><p>案上空空，去考一场吧</p><a href="#/t1" class="btn-seal">去考场</a></div>`;
       return;
     }
 
-    var self = this;
+    setHeaderActions('');
 
     function renderBookCards() {
       var html = '';
@@ -123,11 +123,9 @@ const _t4WrongbookPage = {
       document.getElementById('t4BookGrid').innerHTML = html;
     }
 
-    container.innerHTML = '<div class="content-narrow-4-5" style="display:flex;flex-direction:column;gap:2rem;padding:0.75rem 0 1.5rem">' +
-        '<h4 class="flex-shrink-0" style="font-size:1.5rem;margin:0;color:#1a1a1a"><i class="bi bi-book me-2"></i>错题集</h4>' +
-        '<div class="d-flex flex-column flex-grow-1" style="gap:0;padding-bottom:2.5rem;box-sizing:border-box">' +
-          '<div class="book-grid" id="t4BookGrid"></div>' +
-        '</div>' +
+    container.innerHTML = '<div style="display:flex;flex-direction:column;gap:0.5rem;padding:0">' +
+        '<p style="font-family:var(--font-hand);color:var(--ink-faint);margin:0 0 8px;letter-spacing:0.05em">每本书收录一本卷宗的错题。点书阅卷，点名牌换皮。</p>' +
+        '<div class="book-grid" id="t4BookGrid"></div>' +
       '</div>';
 
     renderBookCards();
@@ -161,15 +159,19 @@ const _t4WrongbookPage = {
     t4DetailCurrentIndex = 0;
     _t4DetailInitialized = false;
 
+    setHeaderActions(`
+      <a href="#/t4" class="btn-tag" style="text-decoration:none"><i class="bi bi-arrow-left"></i> 返错题架</a>
+      <button class="btn-seal btn-seal-jade" onclick="t4OpenReviewModal(${bankId})"><i class="bi bi-lightbulb me-1"></i>扫盲</button>
+    `);
+
+    const firstChar = (bank.name || '卷').trim().charAt(0) || '卷';
+
     container.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">
-          <a href="#/t4" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
-          《${escapeHtml(bank.name)}》错题本
-        </h4>
-        <div>
-          <span class="text-muted me-3" id="t4DetailCount">共 ${wrongQs.length} 道错题</span>
-          <button class="btn btn-primary" onclick="t4OpenReviewModal(${bankId})"><i class="bi bi-lightbulb me-1"></i>错题扫盲</button>
+      <div class="bank-cover">
+        <div class="bank-cover-icon" style="background:var(--seal)">${escapeHtml(firstChar)}</div>
+        <div class="bank-cover-text">
+          <h2 class="bank-cover-title">《${escapeHtml(bank.name)}》错题本</h2>
+          <p class="bank-cover-meta" id="t4DetailCount">共 ${wrongQs.length} 道错题</p>
         </div>
       </div>
       <div class="exam-layout exam-layout--no-scroll">

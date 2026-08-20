@@ -1,4 +1,16 @@
-// === Navigation Bar Component ===
+// === Sidebar (book-spine navigation) ===
+
+// Spine definitions: each section becomes a "book" on the wooden shelf.
+// spine-color / spine-text reference colors from the 32 book schemes (see t4-wrongbook.js).
+const SIDEBAR_SPINES = [
+  { href: '#/home', label: '案头',   spineColor: '#1F1B16', spineText: '#F5DEB3', matchPrefix: '/home' },
+  { href: '#/t1',   label: '考场',   spineColor: '#136058', spineText: '#FCC96E', matchPrefix: '/t1' },
+  { href: '#/t2',   label: '卷宗',   spineColor: '#B33A26', spineText: '#FFF9E6', matchPrefix: '/t2' },
+  { href: '#/t3',   label: '履历',   spineColor: '#5C4632', spineText: '#FFDCA3', matchPrefix: '/t3' },
+  { href: '#/t4',   label: '错题',   spineColor: '#052228', spineText: '#9FE7E6', matchPrefix: '/t4' },
+  { href: '#/t6',   label: '书铺',   spineColor: '#841C3C', spineText: '#D1A1BA', matchPrefix: '/t6' },
+  { href: '#/t5',   label: '拟卷',   spineColor: '#F3CDA8', spineText: '#A92A01', matchPrefix: '/t5' },
+];
 
 function renderNavbar() {
   const container = document.getElementById('app-navbar');
@@ -7,68 +19,63 @@ function renderNavbar() {
   const user = getCurrentUser();
   if (!user) { container.innerHTML = ''; return; }
 
-  const links = [
-    { href: '#/home', icon: 'bi-house', label: '首页' },
-    { href: '#/t1', icon: 'bi-pencil-square', label: '考试&练习' },
-    { href: '#/t2', icon: 'bi-collection', label: '题库集' },
-    { href: '#/t3', icon: 'bi-clock-history', label: '历史记录' },
-    { href: '#/t4', icon: 'bi-book', label: '错题集' },
-    { href: '#/t6', icon: 'bi-layers', label: '书架' },
-    { href: '#/t5', icon: 'bi-file-earmark-text', label: '试卷生成' },
-  ];
+  const isAdmin = user.role === 'admin';
 
-  const navLinks = links.map(l =>
-    `<li class="nav-item"><a id="nav-${l.href.replace('#/', '').replace(/\//g, '-')}" class="nav-link" href="${l.href}"><i class="bi ${l.icon} me-1"></i>${l.label}</a></li>`
-  ).join('');
+  const spinesHtml = SIDEBAR_SPINES.map(s => `
+    <a class="sidebar-spine" href="${s.href}" data-prefix="${s.matchPrefix}"
+       style="--spine-color:${s.spineColor};--spine-text:${s.spineText}">
+      <span class="sidebar-spine-label">${s.label}</span>
+    </a>
+  `).join('');
 
   container.innerHTML = `
-    <nav class="navbar navbar-expand-lg">
-      <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center gap-1" href="#/home" style="font-family:'Microsoft YaHei',sans-serif;font-weight:700"><span style="background:var(--color-primary);color:#fff;padding:2px 8px;border-radius:6px;font-size:0.85em;letter-spacing:0.05em;font-family:'Patrick Hand',cursive;line-height:1.2;">EM</span>考试机</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-links">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbar-links">
-          <ul class="navbar-nav me-auto">${navLinks}</ul>
-          <span class="navbar-text d-flex align-items-center gap-3 me-3" id="navbar-user">
-            <div class="coin-badge" id="coinDisplay">
-              <span class="coin-help-btn" id="coinHelpBtn" title="硬币获取规则：考试/练习每答对一道题奖励1枚；错题扫盲每掌握一道奖励1枚">
-                <i class="bi bi-question-circle-fill"></i>
-              </span>
-              <div class="coin-body">
-                <svg class="coin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" fill="#F5C23A" stroke="#C9920A" stroke-width="1.5"/>
-                  <circle cx="12" cy="12" r="7" fill="#F5D76E"/>
-                  <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#8B6914" font-family="serif">$</text>
-                </svg>
-                <span id="coinCount" class="coin-count">0</span>
-              </div>
-            </div>
-            <span class="user-name" style="display:inline-flex;align-items:center;background:#fff;border:1px solid #ddd;border-radius:6px;padding:0.2rem 0.6rem;"><i class="bi bi-person-circle me-1"></i>${escapeHtml(user.username)}</span>
-            ${user.role === 'admin' ? '<span class="badge bg-warning text-dark ms-1">管理员</span>' : ''}
-          </span>
-          <button class="btn btn-sm d-flex align-items-center justify-content-center" style="background:#fff;color:#333;border:1px solid #ddd;width:32px;height:32px;padding:0;border-radius:6px;" onclick="confirmLogout()"><i class="bi bi-box-arrow-right"></i></button>
-        </div>
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-seal">考</div>
+      <h1 class="sidebar-brand-title">考试机</h1>
+      <div class="sidebar-brand-sub">EXAM&nbsp;MACHINE</div>
+    </div>
+    <ul class="sidebar-spines" id="sidebar-spines">${spinesHtml}</ul>
+    <div class="sidebar-user">
+      <div class="sidebar-user-row">
+        <i class="bi bi-person-circle" style="color:#F5DEB3"></i>
+        <span class="sidebar-user-name">${escapeHtml(user.username)}</span>
+        ${isAdmin ? '<span class="sidebar-admin-tag">管理员</span>' : ''}
       </div>
-    </nav>`;
+      <div class="sidebar-coin-badge" id="coinDisplay">
+        <svg class="sidebar-coin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="#F5C23A" stroke="#C9920A" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="7" fill="#F5D76E"/>
+          <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#8B6914" font-family="serif">$</text>
+        </svg>
+        <span id="coinCount" class="sidebar-coin-count">0</span>
+      </div>
+      <button class="sidebar-logout" onclick="confirmLogout()" title="退出登录">
+        <i class="bi bi-box-arrow-right"></i> 退卷
+      </button>
+    </div>
+  `;
 
-  // Initialize tooltip
-  setTimeout(() => {
-    const tipEl = document.getElementById('coinHelpBtn');
-    if (tipEl && typeof bootstrap !== 'undefined') {
-      try { new bootstrap.Tooltip(tipEl); } catch (e) {}
-    }
-  }, 100);
+  // Set active spine
+  setActiveSpine((location.hash.slice(1) || '/home').split('?')[0]);
 
   // Load coins
   loadCoinsDisplay(user.id);
-
-  // Subscribe to coin updates
   subscribe('coins:updated', () => loadCoinsDisplay(user.id));
+}
 
-  // Set active
-  const hash = location.hash.slice(1) || '/home';
-  updateNavbarActive(hash);
+function setActiveSpine(hash) {
+  document.querySelectorAll('.sidebar-spine').forEach(el => {
+    el.classList.remove('active');
+    const prefix = el.dataset.prefix;
+    if (prefix && hash.startsWith(prefix)) {
+      el.classList.add('active');
+    }
+  });
+  // Special case: /home should be active only on /home
+  if (hash === '/home' || hash === '/') {
+    const home = document.querySelector('.sidebar-spine[data-prefix="/home"]');
+    if (home) home.classList.add('active');
+  }
 }
 
 async function loadCoinsDisplay(userId) {
@@ -79,25 +86,8 @@ async function loadCoinsDisplay(userId) {
 }
 
 function updateNavbarActive(hash) {
-  document.querySelectorAll('#navbar-links .nav-link').forEach(link => {
-    link.classList.remove('active');
-  });
-  if (hash === '/home') {
-    document.getElementById('nav-home')?.classList.add('active');
-  } else if (hash.startsWith('/t1')) {
-    document.getElementById('nav-t1')?.classList.add('active');
-  } else if (hash.startsWith('/t2')) {
-    document.getElementById('nav-t2')?.classList.add('active');
-  } else if (hash.startsWith('/t3')) {
-    document.getElementById('nav-t3')?.classList.add('active');
-  } else if (hash.startsWith('/t4')) {
-    document.getElementById('nav-t4')?.classList.add('active');
-  } else if (hash.startsWith('/t5')) {
-    document.getElementById('nav-t5')?.classList.add('active');
-  } else if (hash.startsWith('/t6')) {
-    document.getElementById('nav-t6')?.classList.add('active');
-  }
+  setActiveSpine(hash.split('?')[0]);
 }
 
 // Subscribe to auth changes
-subscribe('auth:changed', (user) => renderNavbar());
+subscribe('auth:changed', () => renderNavbar());

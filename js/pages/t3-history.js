@@ -1,4 +1,4 @@
-// === T3 History Page ===
+// === T3 History Page (履历册 — vertical timeline) ===
 
 let t3CurrentPage = 1;
 let t3FilterBank = '';
@@ -17,50 +17,68 @@ const _t3HistoryPage = {
     const startIdx = (t3CurrentPage - 1) * T3_PAGE_SIZE;
     const pageRecords = records.slice(startIdx, startIdx + T3_PAGE_SIZE);
 
+    // Header actions
+    setHeaderActions('');
+
+    // Empty state
+    if (pageRecords.length === 0) {
+      container.innerHTML = `
+        <div class="content-narrow">
+          <div class="empty-state">
+            <i class="bi bi-clock-history"></i>
+            <p>尚无履历，去考一场吧</p>
+            <a href="#/t1" class="btn-seal">去考场</a>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // Build timeline items
+    const itemsHtml = pageRecords.map(r => {
+      const passFail = (r.score >= (r.passScore || 0)) ? 'pass' : 'fail';
+      const acc = r.totalCount > 0 ? Math.round(r.correctCount / r.totalCount * 100) : 0;
+      const typeLabel = r.type === 'exam' ? '考' : '练';
+      const typeColor = r.type === 'exam' ? 'var(--seal)' : 'var(--jade)';
+      return `
+        <div class="history-item">
+          <div class="history-item-header">
+            <div class="history-item-title">${escapeHtml(r.bankName || '无名卷宗')}</div>
+            <div class="history-item-date">${formatDate(r.date)}</div>
+          </div>
+          <div class="history-item-body">
+            <span class="chip" style="color:${typeColor};border-color:${typeColor}">${typeLabel} · ${escapeHtml(r.modeName || '—')}</span>
+            <span class="history-score ${passFail === 'fail' ? 'fail' : ''}">${r.score}<span style="font-size:0.7em;color:var(--ink-faint)">/${r.totalScore}</span></span>
+            <span style="color:var(--ink-soft)">正确率 <strong style="color:var(--ink)">${acc}%</strong></span>
+            <span style="color:var(--ink-soft)">用时 <strong style="color:var(--ink);font-family:var(--font-mono)">${formatTime(r.timeSpent || 0)}</strong></span>
+            ${r.score >= (r.passScore || 0) ? '<span class="chip" style="color:#1B7A4E;border-color:#1B7A4E">及格</span>' : '<span class="chip" style="color:var(--seal);border-color:var(--seal)">未达</span>'}
+          </div>
+        </div>
+      `;
+    }).join('');
+
     container.innerHTML = `
       <div class="content-narrow">
-        <h4 class="mb-3" style="color:#1a1a1a"><i class="bi bi-clock-history me-2"></i>历史记录</h4>
-
         <div class="row g-2 mb-3">
-          <div class="col-md-3">
+          <div class="col-md-4">
             <select class="form-select form-select-sm" id="t3FilterBank">
-              <option value="">全部题库</option>
+              <option value="">全部卷宗</option>
               ${banks.map(b => `<option value="${b.id}" ${t3FilterBank === String(b.id) ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}
             </select>
           </div>
-          <div class="col-md-2">
+          <div class="col-md-3">
             <select class="form-select form-select-sm" id="t3FilterType">
-              <option value="all" ${t3FilterType === 'all' ? 'selected' : ''}>全部类型</option>
-              <option value="exam" ${t3FilterType === 'exam' ? 'selected' : ''}>考试</option>
-              <option value="practice" ${t3FilterType === 'practice' ? 'selected' : ''}>练习</option>
+              <option value="all" ${t3FilterType === 'all' ? 'selected' : ''}>全部</option>
+              <option value="exam" ${t3FilterType === 'exam' ? 'selected' : ''}>仅考试</option>
+              <option value="practice" ${t3FilterType === 'practice' ? 'selected' : ''}>仅练习</option>
             </select>
+          </div>
+          <div class="col-md-5 text-end" style="font-family:var(--font-hand);color:var(--ink-faint);align-self:center">
+            共 ${total} 条
           </div>
         </div>
 
-        <div class="table-page-wrapper">
-          <div class="table-container">
-            <table class="table table-hover">
-              <thead>
-                <tr><th>日期</th><th>类型</th><th>题库</th><th>模式</th><th>得分</th><th>正确率</th><th>用时</th></tr>
-              </thead>
-              <tbody>
-                ${pageRecords.length === 0 ? '<tr><td colspan="7" class="text-center text-muted py-4">暂无历史记录</td></tr>' :
-                  pageRecords.map(r => `
-                    <tr>
-                      <td>${formatDate(r.date)}</td>
-                      <td><span class="badge ${r.type === 'exam' ? 'bg-primary' : 'bg-success'}">${r.type === 'exam' ? '考试' : '练习'}</span></td>
-                      <td>${escapeHtml(r.bankName || '')}</td>
-                      <td>${escapeHtml(r.modeName || '-')}</td>
-                      <td><strong>${r.score}</strong> / ${r.totalScore}</td>
-                      <td>${r.totalCount > 0 ? Math.round(r.correctCount / r.totalCount * 100) : 0}%</td>
-                      <td>${formatTime(r.timeSpent || 0)}</td>
-                    </tr>`).join('')
-                }
-              </tbody>
-            </table>
-          </div>
-          <div id="t3Pagination" class="pagination-container"></div>
-        </div>
+        <div class="history-timeline">${itemsHtml}</div>
+        <div id="t3Pagination" class="mt-3"></div>
       </div>`;
 
     renderPagination(document.getElementById('t3Pagination'), {

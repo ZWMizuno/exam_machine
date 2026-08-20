@@ -81,17 +81,19 @@ const _t6StorePage = {
     }
 
     const emptyStateHtml =
-      '<div class="empty-state" style="background:var(--color-surface);border-radius:0.5rem;padding:2rem;text-align:center;color:#aaa;">' +
-        '<i class="bi bi-palette" style="font-size:3rem;margin-bottom:1rem;display:block;"></i>' +
-        '<p style="margin-bottom:1rem;">' +
-          (_t6Filter === 'owned' ? '暂无已拥有的皮肤' : _t6Filter === 'unowned' ? '暂无未拥有的皮肤' : '暂无可显示的皮肤') +
+      '<div class="empty-state" style="background:var(--paper);border:1px solid var(--color-border);border-radius:4px 12px 4px 12px;padding:3rem 2rem;">' +
+        '<i class="bi bi-palette" style="color:var(--paper-3)"></i>' +
+        '<p style="margin-bottom:1rem;font-family:var(--font-display);color:var(--ink-soft)">' +
+          (_t6Filter === 'owned' ? '尚未收藏任何皮' : _t6Filter === 'unowned' ? '皆已收齐' : '无可显之皮') +
         '</p>' +
-        (_t6Filter !== 'all' ? '<a href="#/t6" class="btn btn-primary btn-sm" onclick="event.preventDefault();_t6Filter=\'all\';_t6StorePage.render(document.getElementById(\'app-content\'));">查看全部</a>' : '') +
+        (_t6Filter !== 'all' ? '<a href="#/t6" class="btn-seal btn-seal-sm" onclick="event.preventDefault();_t6Filter=\'all\';_t6StorePage.render(document.getElementById(\'app-content\'));">看全部</a>' : '') +
       '</div>';
+
+    // Header actions
+    setHeaderActions('');
 
     container.innerHTML =
       '<div class="store-page"><div class="store-page-inner">' +
-        '<h4 class="flex-shrink-0" style="color:#1a1a1a;margin:0 0 0.75rem"><i class="bi bi-layers me-2"></i>书架</h4>' +
         '<div class="store-filter-tabs mb-3">' +
           '<div class="tab-group">' +
             '<input type="radio" id="filter-all" name="store-filter" value="all" ' + (_t6Filter === 'all' ? 'checked' : '') + ' onchange="_t6Filter=\'all\';_t6StorePage.render(document.getElementById(\'app-content\'))">' +

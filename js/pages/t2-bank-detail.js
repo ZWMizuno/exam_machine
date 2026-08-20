@@ -46,21 +46,41 @@ const _t2DetailPage = {
   },
 
   renderUI(container, bank) {
+    // Inject header actions and a bank cover above the layout
+    const totalQ = t2DetailAllQuestions.length;
+    const counts = t2DetailAllQuestions.reduce((acc, q) => { acc[q.type] = (acc[q.type] || 0) + 1; return acc; }, {});
+    const statChips = [];
+    if (counts.single) statChips.push(`<span class="bank-cover-stat"><span style="color:var(--jade)">单选</span> <strong>${counts.single}</strong></span>`);
+    if (counts.multi)  statChips.push(`<span class="bank-cover-stat"><span style="color:#4A7B95">多选</span> <strong>${counts.multi}</strong></span>`);
+    if (counts.tf)     statChips.push(`<span class="bank-cover-stat"><span style="color:var(--gold)">判断</span> <strong>${counts.tf}</strong></span>`);
+    if (counts.fill)   statChips.push(`<span class="bank-cover-stat"><span style="color:#1B7A4E">填空</span> <strong>${counts.fill}</strong></span>`);
+    if (counts.essay)  statChips.push(`<span class="bank-cover-stat"><span style="color:#7C3AED">问答</span> <strong>${counts.essay}</strong></span>`);
+
+    setHeaderActions(`
+      <a href="#/t2" class="btn-tag" style="text-decoration:none"><i class="bi bi-arrow-left"></i> 返卷宗</a>
+      <button class="btn-tag" onclick="t2DetailExportWithConfirm(${bank.id}, '${escapeHtml(bank.name)}')"><i class="bi bi-download"></i> 导出</button>
+    `);
+
+    // Build a top letter "封面" (book cover) — purely decorative, using the bank name initial
+    const firstChar = (bank.name || '卷').trim().charAt(0) || '卷';
+
     container.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 style="color:#1a1a1a">
-          <a href="#/t2" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
-          <i class="bi bi-eye me-2"></i>《${escapeHtml(bank.name)}》
-        </h4>
-        <div class="d-flex align-items-center gap-2">
-          <div class="input-group" style="width:250px">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" id="t2DetailSearch" placeholder="搜索题目内容..." value="${escapeHtml(t2DetailSearchQuery)}">
-            <button class="btn btn-sm btn-outline-secondary" id="t2ClearSearch" style="${t2DetailSearchQuery ? 'display:inline-flex' : 'display:none'}">
-              <i class="bi bi-x"></i></button>
-          </div>
-          <button class="btn btn-outline-secondary btn-sm" onclick="t2DetailExportWithConfirm(${bank.id}, '${escapeHtml(bank.name)}')">
-            <i class="bi bi-download"></i> 导出</button>
+      <div class="bank-cover">
+        <div class="bank-cover-icon">${escapeHtml(firstChar)}</div>
+        <div class="bank-cover-text">
+          <h2 class="bank-cover-title">《${escapeHtml(bank.name)}》</h2>
+          <p class="bank-cover-meta">共 ${totalQ} 题 · ${t2DetailAllQuestions.length > 0 ? '静阅' : '空卷'}</p>
+          <div class="bank-cover-stats">${statChips.join('')}</div>
+        </div>
+      </div>
+
+      <div class="mb-3" style="max-width:340px">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="t2DetailSearch" placeholder="寻题中..." value="${escapeHtml(t2DetailSearchQuery)}">
+          <button class="btn-icon-jade" id="t2ClearSearch" style="${t2DetailSearchQuery ? '' : 'display:none'}">
+            <i class="bi bi-x"></i>
+          </button>
         </div>
       </div>
 
@@ -74,9 +94,9 @@ const _t2DetailPage = {
           </div>
           <div class="d-flex justify-content-between align-items-center mt-3">
             <div class="d-flex align-items-center gap-2">
-              <button class="btn btn-outline-primary" id="t2DetailPrevBtn" ${t2DetailCurrentIndex === 0 ? 'disabled' : ''}><i class="bi bi-chevron-left"></i> 上一题</button>
-              <button class="btn btn-outline-primary" id="t2DetailNextBtn" ${t2DetailCurrentIndex === (t2DetailAllQuestions.length - 1) ? 'disabled' : ''}>下一题 <i class="bi bi-chevron-right"></i></button>
-              <span class="text-muted" style="font-size:0.8rem"><i class="bi bi-keyboard me-1"></i>键盘 ← → 键可切换题目</span>
+              <button class="btn-tag" id="t2DetailPrevBtn" ${t2DetailCurrentIndex === 0 ? 'style="opacity:0.5;pointer-events:none"' : ''}><i class="bi bi-chevron-left"></i> 上一题</button>
+              <button class="btn-tag" id="t2DetailNextBtn" ${t2DetailCurrentIndex === (t2DetailAllQuestions.length - 1) ? 'style="opacity:0.5;pointer-events:none"' : ''}>下一题 <i class="bi bi-chevron-right"></i></button>
+              <span style="font-size:0.8rem;font-family:var(--font-hand);color:var(--ink-faint)"><i class="bi bi-keyboard me-1"></i>← → 键亦可</span>
             </div>
           </div>
         </div>

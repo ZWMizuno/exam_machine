@@ -12,22 +12,25 @@ const _t5PaperPage = {
   async render(container) {
     const banks = await getAllBanks();
     if (banks.length === 0) {
-      container.innerHTML = `<div class="empty-state"><i class="bi bi-collection"></i><p>暂无题库，请先导入题库</p><a href="#/t2/add" class="btn btn-primary">去导入题库</a></div>`;
+      container.innerHTML = `<div class="empty-state"><i class="bi bi-folder2-open"></i><p>卷宗无题，请先录入</p><a href="#/t2/add" class="btn-seal">去录入</a></div>`;
       return;
     }
 
     this._step = 1;
     this._bankId = null;
     this._configs = null;
+    setHeaderActions('');
 
     container.innerHTML = `
-      <h4 class="mb-4" style="color:#1a1a1a"><i class="bi bi-file-earmark-text me-2"></i>试卷生成</h4>
-      <div class="wizard-steps mb-4">
-        <div class="wizard-step active" id="t5Step1"><div class="step-circle">1</div><div class="step-label">选择题库</div></div>
-        <div class="wizard-step" id="t5Step2"><div class="step-circle">2</div><div class="step-label">试题构成</div></div>
-        <div class="wizard-step" id="t5Step3"><div class="step-circle">3</div><div class="step-label">试卷生成</div></div>
-      </div>
-      <div id="t5WizardContent"></div>`;
+      <div class="wizard-scroll">
+        <h3 class="wizard-title">拟 · 卷</h3>
+        <div class="wizard-steps">
+          <div class="wizard-step active" id="t5Step1"><div class="step-circle">一</div><div class="step-label">择卷宗</div></div>
+          <div class="wizard-step" id="t5Step2"><div class="step-circle">二</div><div class="step-label">定构成</div></div>
+          <div class="wizard-step" id="t5Step3"><div class="step-circle">三</div><div class="step-label">生成</div></div>
+        </div>
+        <div id="t5WizardContent"></div>
+      </div>`;
 
     this._bindStepClicks();
     await this.renderStep1(container, banks);
@@ -72,18 +75,22 @@ const _t5PaperPage = {
     const content = document.getElementById('t5WizardContent');
     content.innerHTML = `
       <div class="wizard-step-content">
-        <div class="card"><div class="card-body p-4">
-          <h5 class="mb-3">步骤 1：选择题库</h5>
-          <select class="form-select mb-3" id="t5BankSelect">
-            <option value="">-- 选择题库 --</option>
-            ${banks.map(b => `<option value="${b.id}" ${savedBankId === b.id ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}
-          </select>
-          <button class="btn btn-primary w-100" id="t5Step1Next" ${savedBankId ? '' : 'disabled'}>下一步 <i class="bi bi-arrow-right"></i></button>
-        </div></div>
+        <h5 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.08em;margin:0 0 12px">一 · 择卷宗</h5>
+        <p style="font-family:var(--font-hand);color:var(--ink-soft);margin:0 0 12px">挑一本要拟卷的题库。</p>
+        <select class="form-select mb-3" id="t5BankSelect">
+          <option value="">-- 择卷 --</option>
+          ${banks.map(b => `<option value="${b.id}" ${savedBankId === b.id ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}
+        </select>
+        <button class="btn-seal w-100" id="t5Step1Next" ${savedBankId ? '' : 'style="opacity:0.5;pointer-events:none"'}>
+          下一步 <i class="bi bi-arrow-right ms-1"></i>
+        </button>
       </div>`;
 
     document.getElementById('t5BankSelect').addEventListener('change', (e) => {
-      document.getElementById('t5Step1Next').disabled = !e.target.value;
+      const btn = document.getElementById('t5Step1Next');
+      const empty = !e.target.value;
+      btn.style.opacity = empty ? '0.5' : '';
+      btn.style.pointerEvents = empty ? 'none' : '';
     });
 
     document.getElementById('t5Step1Next').addEventListener('click', async () => {
@@ -107,9 +114,9 @@ const _t5PaperPage = {
 
     const content = document.getElementById('t5WizardContent');
     content.innerHTML = `
-      <div class="content-narrow">
-      <div class="card"><div class="card-body">
-        <h5>步骤 2：试题构成</h5>
+      <div class="wizard-step-content">
+        <h5 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.08em;margin:0 0 12px">二 · 定构成</h5>
+        <p style="font-family:var(--font-hand);color:var(--ink-soft);margin:0 0 12px">设定时长与各题型题数 / 分值。</p>
         <form id="t5ConfigForm">
           <div class="mb-3">
             <label class="form-label">考试时长（分钟）</label>
@@ -121,8 +128,8 @@ const _t5PaperPage = {
             return `
             <div class="type-col" id="t5TypeRow_${t}">
               <div class="type-col-header">
-                <input class="form-check-input" type="checkbox" id="t5_enable_${t}" data-type="${t}" ${sc ? 'checked' : ''}>
-                <label class="form-check-label" for="t5_enable_${t}">${TYPE_LABELS[t]}<span class="text-muted ms-1 small">(${counts[t]}题)</span></label>
+                <input class="form-check-input" type="checkbox" id="t5_enable_${t}" data-type="${t}" ${sc ? 'checked' : ''} style="border-color:var(--ink-soft)">
+                <label class="form-check-label" for="t5_enable_${t}" style="font-family:var(--font-display);font-weight:700">${TYPE_LABELS[t]}<span class="text-muted ms-1 small">(${counts[t]}题)</span></label>
               </div>
               <div class="type-field">
                 <label class="form-label" for="t5_count_${t}">题目数量</label>
@@ -142,13 +149,14 @@ const _t5PaperPage = {
             </div>`;
           }).join('')}
           </div>
-          <div class="alert alert-info mt-3">试卷总分：<strong id="t5TotalScore">0</strong> 分</div>
+          <div class="alert mt-3" style="background:var(--paper-2);border:1px solid var(--color-border);color:var(--ink);font-family:var(--font-hand)">
+            试卷总分：<strong id="t5TotalScore" style="font-family:var(--font-display);color:var(--seal)">0</strong> 分
+          </div>
           <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-secondary" id="t5Step2Back"><i class="bi bi-arrow-left"></i> 上一步</button>
-            <button type="submit" class="btn btn-primary flex-grow-1">下一步 <i class="bi bi-arrow-right"></i></button>
+            <button type="button" class="btn-tag" id="t5Step2Back"><i class="bi bi-arrow-left"></i> 上一步</button>
+            <button type="submit" class="btn-seal btn-seal-jade flex-grow-1">下一步 <i class="bi bi-arrow-right ms-1"></i></button>
           </div>
         </form>
-      </div></div>
       </div>`;
 
     // Auto-calculate
@@ -202,38 +210,39 @@ const _t5PaperPage = {
     const content = document.getElementById('t5WizardContent');
 
     const summaryHtml = this._configs.map(c =>
-      `<tr><td>${TYPE_LABELS[c.type]}</td><td>${c.count} 题</td><td>每题 ${c.points} 分</td><td>${c.shuffleOptions ? '<span class="badge bg-info">已启用</span>' : '<span class="badge bg-secondary">未启用</span>'}</td></tr>`
+      `<tr><td style="font-family:var(--font-display);font-weight:700;color:var(--ink)">${TYPE_LABELS[c.type]}</td><td>${c.count} 题</td><td>每题 ${c.points} 分</td><td>${c.shuffleOptions ? '<span class="chip" style="color:var(--jade);border-color:var(--jade)">已启用</span>' : '<span class="chip" style="color:var(--ink-faint);border-color:var(--ink-faint)">未启用</span>'}</td></tr>`
     ).join('');
 
     content.innerHTML = `
-      <div class="content-narrow">
-      <div class="card"><div class="card-body">
-        <h5>步骤 3：试卷生成</h5>
-        <div class="card bg-light mb-3"><div class="card-body">
-          <h6>试卷配置</h6>
-          <p class="mb-1">题库：《${escapeHtml(bank.name)}》| 时长：${this._duration} 分钟 | 总分：${this._totalScore} 分</p>
-          <table class="table table-sm"><thead><tr><th>题型</th><th>数量</th><th>分值</th><th>选项乱序</th></tr></thead><tbody>${summaryHtml}</tbody></table>
-        </div></div>
+      <div class="wizard-step-content">
+        <h5 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.08em;margin:0 0 12px">三 · 生成</h5>
+        <div class="paper-card" style="background:var(--paper-2)">
+          <h6 style="font-family:var(--font-display);color:var(--ink);font-weight:700;margin:0 0 8px">试卷配置</h6>
+          <p style="margin:0 0 8px;font-family:var(--font-hand);color:var(--ink-soft)">题库：《${escapeHtml(bank.name)}》 · 时长：${this._duration} 分钟 · 总分：${this._totalScore} 分</p>
+          <table class="table table-sm" style="background:transparent">
+            <thead><tr><th>题型</th><th>数量</th><th>分值</th><th>选项乱序</th></tr></thead>
+            <tbody>${summaryHtml}</tbody>
+          </table>
+        </div>
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label">试卷名称</label>
+            <label class="form-label">试卷名</label>
             <input type="text" class="form-control" id="t5PaperName" value="${escapeHtml(bank.name)}-试卷-${new Date().toISOString().slice(0,10)}">
           </div>
           <div class="col-md-3">
-            <label class="form-label">纸张格式</label>
+            <label class="form-label">纸张</label>
             <select class="form-select" id="t5PaperFormat">
-              <option value="A4">A4横版</option>
-              <option value="A3">A3横版</option>
+              <option value="A4">A4 横</option>
+              <option value="A3">A3 横</option>
             </select>
           </div>
           <div class="col-md-3 d-flex align-items-end">
-            <button class="btn btn-success btn-lg w-100" id="t5DownloadBtn"><i class="bi bi-download me-1"></i>下载试卷</button>
+            <button class="btn-seal btn-seal-gold w-100" id="t5DownloadBtn"><i class="bi bi-download me-1"></i>下载</button>
           </div>
         </div>
         <div class="mt-3">
-          <button class="btn btn-outline-secondary" id="t5Step3Back"><i class="bi bi-arrow-left"></i> 上一步</button>
+          <button class="btn-tag" id="t5Step3Back"><i class="bi bi-arrow-left"></i> 上一步</button>
         </div>
-      </div></div>
       </div>`;
 
     document.getElementById('t5Step3Back').addEventListener('click', async () => {

@@ -123,6 +123,9 @@ const _t1SessionPage = {
 
   renderSessionUI(container) {
     const isExam = this._sessionState.type === 'exam';
+    // Hide header actions and main header (we have our own toolbar at the bottom)
+    setHeaderActions('');
+
     container.innerHTML = `
       <div class="exam-layout">
         <div class="exam-sidebar-col">
@@ -135,13 +138,13 @@ const _t1SessionPage = {
           </div>
           <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
-              <button class="btn btn-outline-primary" id="btnPrev" onclick="_t1SessionPage.navPrev()"><i class="bi bi-chevron-left"></i> 上一题</button>
-              <button class="btn btn-outline-primary" id="btnNext" onclick="_t1SessionPage.navNext()">下一题 <i class="bi bi-chevron-right"></i></button>
-              <span class="text-muted" style="font-size:0.8rem"><i class="bi bi-keyboard me-1"></i>键盘 ← → 键可切换题目</span>
+              <button class="btn-tag" id="btnPrev" onclick="_t1SessionPage.navPrev()"><i class="bi bi-chevron-left"></i> 上一题</button>
+              <button class="btn-tag" id="btnNext" onclick="_t1SessionPage.navNext()">下一题 <i class="bi bi-chevron-right"></i></button>
+              <span style="font-size:0.8rem;font-family:var(--font-hand);color:var(--ink-faint)"><i class="bi bi-keyboard me-1"></i>← → 亦可</span>
             </div>
             <div class="d-flex gap-2">
-              <button class="btn btn-danger btn-lg" id="btnEnd" onclick="_t1SessionPage.endSession()"><i class="bi bi-stop-circle me-1"></i>结束${isExam ? '考试' : '练习'}</button>
-              <button class="btn btn-success btn-lg" id="btnSubmit" onclick="_t1SessionPage.submitSession()"><i class="bi bi-check-lg me-1"></i>提交试卷</button>
+              <button class="btn-seal" id="btnEnd" onclick="_t1SessionPage.endSession()"><i class="bi bi-stop-circle me-1"></i>收卷</button>
+              <button class="btn-seal btn-seal-jade" id="btnSubmit" onclick="_t1SessionPage.submitSession()"><i class="bi bi-check-lg me-1"></i>交卷</button>
             </div>
           </div>
         </div>

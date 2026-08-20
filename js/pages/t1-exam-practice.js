@@ -1,11 +1,11 @@
-// === T1 Exam & Practice Landing + Wizards ===
+// === T1 Exam & Practice Landing + Wizards (案头书斋) ===
 
 const _t1Page = {
   // Exam wizard state
   _examBankId: null,
   _examStep: 1,
   _savedExamBankId: null,
-  _savedExamModeConfig: null,  // preserved when going back from step 2
+  _savedExamModeConfig: null,
   // Practice wizard state
   _pracBankId: null,
   _pracStep: 1,
@@ -20,24 +20,24 @@ const _t1Page = {
   },
 
   async renderLanding(container) {
+    // Clear header actions (landing has no extra buttons)
+    setHeaderActions('');
     container.innerHTML = `
-      <div class="content-narrow">
-        <h4 class="mb-4" style="color:#1a1a1a"><i class="bi bi-pencil-square me-2"></i>考试 & 练习</h4>
-        <p class="text-muted mb-4">请选择模式：</p>
-        <div class="row g-4">
-          <div class="col-md-6">
-            <div class="card text-center p-4 exam-mode-card" style="cursor:pointer" onclick="location.hash='#/t1/exam'">
-              <i class="bi bi-pencil-square fs-1 text-primary mb-3"></i>
-              <h5>考试模式</h5>
-              <p class="text-muted">计时考试，自动评分，记录成绩</p>
-            </div>
+      <div class="content-narrow" style="text-align:center;padding-top:30px">
+        <h2 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.15em;margin:0 0 8px">考 场</h2>
+        <p style="font-family:var(--font-hand);color:var(--ink-faint);font-size:1.1rem;margin:0 0 32px;letter-spacing:0.05em">
+          选其一 · 闭卷 · 始
+        </p>
+        <div class="mode-grid">
+          <div class="mode-card" onclick="location.hash='#/t1/exam'">
+            <div class="mode-card-seal"><i class="bi bi-pencil-square"></i></div>
+            <h3 class="mode-card-title">考 · 试</h3>
+            <p class="mode-card-desc">计时 · 自动评分 · 落卷</p>
           </div>
-          <div class="col-md-6">
-            <div class="card text-center p-4 exam-mode-card" style="cursor:pointer" onclick="location.hash='#/t1/practice'">
-              <i class="bi bi-journal-text fs-1 text-success mb-3"></i>
-              <h5>练习模式</h5>
-              <p class="text-muted">自由练习，即时纠错，查漏补缺</p>
-            </div>
+          <div class="mode-card mode-card-jade" onclick="location.hash='#/t1/practice'">
+            <div class="mode-card-seal"><i class="bi bi-journal-text"></i></div>
+            <h3 class="mode-card-title">练 · 习</h3>
+            <p class="mode-card-desc">自由作答 · 即时纠错</p>
           </div>
         </div>
       </div>`;
@@ -47,27 +47,27 @@ const _t1Page = {
   async renderExamWizard(container) {
     const banks = await getAllBanks();
     if (banks.length === 0) {
-      container.innerHTML = `<div class="empty-state"><i class="bi bi-collection"></i><p>暂无题库，请先导入题库</p><a href="#/t2/add" class="btn btn-primary">去导入题库</a></div>`;
+      container.innerHTML = `<div class="empty-state"><i class="bi bi-folder2-open"></i><p>卷宗无题，请先录入</p><a href="#/t2/add" class="btn-seal">去录入题库</a></div>`;
       return;
     }
 
-    // Reset state
     this._examBankId = null;
     this._examStep = 1;
+    setHeaderActions('');
 
     container.innerHTML = `
-      <h4 class="mb-4"><i class="bi bi-pencil-square me-2"></i>考试模式</h4>
-      <div class="wizard-steps mb-4">
-        <div class="wizard-step active" id="examStep1">
-          <div class="step-circle">1</div>
-          <div class="step-label">选择题库</div>
+      <div class="wizard-scroll">
+        <h3 class="wizard-title">考 · 试 · 卷</h3>
+        <div class="wizard-steps">
+          <div class="wizard-step active" id="examStep1">
+            <div class="step-circle">一</div><div class="step-label">择卷宗</div>
+          </div>
+          <div class="wizard-step" id="examStep2">
+            <div class="step-circle">二</div><div class="step-label">定规制</div>
+          </div>
         </div>
-        <div class="wizard-step" id="examStep2">
-          <div class="step-circle">2</div>
-          <div class="step-label">模式设置</div>
-        </div>
-      </div>
-      <div id="examWizardContent"></div>`;
+        <div id="examWizardContent"></div>
+      </div>`;
 
     this._examBindStepClicks();
     await this.renderExamStep1(container, banks);
@@ -102,18 +102,23 @@ const _t1Page = {
     const content = document.getElementById('examWizardContent');
     content.innerHTML = `
       <div class="wizard-step-content">
-        <div class="card"><div class="card-body p-4">
-          <h5 class="mb-3">步骤 1：选择题库</h5>
-          <select class="form-select mb-3" id="examBankSelect">
-            <option value="">-- 选择题库 --</option>
-            ${banks.map(b => `<option value="${b.id}" ${savedBankId === b.id ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}
-          </select>
-          <button class="btn btn-primary w-100" id="examNextBtn" ${savedBankId ? '' : 'disabled'}>下一步 <i class="bi bi-arrow-right"></i></button>
-        </div></div>
+        <h5 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.08em;margin:0 0 12px">一 · 择卷宗</h5>
+        <p style="font-family:var(--font-hand);color:var(--ink-soft);margin:0 0 12px">挑选一本要考的题库。</p>
+        <select class="form-select mb-3" id="examBankSelect">
+          <option value="">-- 择卷 --</option>
+          ${banks.map(b => `<option value="${b.id}" ${savedBankId === b.id ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}
+        </select>
+        <button class="btn-seal w-100" id="examNextBtn" ${savedBankId ? '' : 'disabled'} ${savedBankId ? '' : 'style="opacity:0.5;pointer-events:none"'}>
+          下一步 <i class="bi bi-arrow-right ms-1"></i>
+        </button>
       </div>`;
 
     document.getElementById('examBankSelect').addEventListener('change', (e) => {
-      document.getElementById('examNextBtn').disabled = !e.target.value;
+      const btn = document.getElementById('examNextBtn');
+      const empty = !e.target.value;
+      btn.disabled = empty;
+      btn.style.opacity = empty ? '0.5' : '';
+      btn.style.pointerEvents = empty ? 'none' : '';
     });
 
     document.getElementById('examNextBtn').addEventListener('click', async () => {
@@ -138,55 +143,42 @@ const _t1Page = {
     const content = document.getElementById('examWizardContent');
     content.innerHTML = `
       <div class="wizard-step-content">
-        <div class="card">
-          <div class="card-body">
-            <h5>步骤 2：模式设置</h5>
-            <ul class="nav nav-tabs mb-3" id="examModeTabs">
-              <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#modeSettings">模式设置</button></li>
-              <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#modeAdd">模式新增</button></li>
-            </ul>
-            <div class="tab-content">
-              <div class="tab-pane fade show active" id="modeSettings">${await this.renderModeSettings(bankId, modes)}</div>
-              <div class="tab-pane fade" id="modeAdd">${await this.renderModeAdd(bankId, counts, availableTypes, defaultName)}</div>
-            </div>
-            <div class="d-flex align-items-center mt-3" style="gap:1rem">
-              <button class="btn btn-outline-secondary" id="examStep2Back"><i class="bi bi-arrow-left"></i> 上一步</button>
-              <div class="d-flex gap-2 flex-grow-1 justify-content-end">
-                <button class="btn btn-success flex-grow-1" id="startExamBtn" style="display:none"><i class="bi bi-play-fill me-1"></i>开始考试</button>
-                <button type="submit" form="examModeAddForm" class="btn btn-primary flex-grow-1" style="display:none" id="addModeBtn"><i class="bi bi-plus-circle me-1"></i>添加模式</button>
-              </div>
-            </div>
+        <h5 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.08em;margin:0 0 12px">二 · 定规制</h5>
+        <p style="font-family:var(--font-hand);color:var(--ink-soft);margin:0 0 12px">「${escapeHtml(bank.name)}」的考卷配置。</p>
+        <ul class="nav nav-tabs mb-3" id="examModeTabs" style="border-bottom:1px solid var(--color-border)">
+          <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#modeSettings" style="color:var(--ink-soft);border:none;border-bottom:2px solid transparent">现成模式</button></li>
+          <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#modeAdd" style="color:var(--ink-soft);border:none;border-bottom:2px solid transparent">新拟模式</button></li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="modeSettings">${await this.renderModeSettings(bankId, modes)}</div>
+          <div class="tab-pane fade" id="modeAdd">${await this.renderModeAdd(bankId, counts, availableTypes, defaultName)}</div>
+        </div>
+        <div class="d-flex align-items-center mt-3" style="gap:0.75rem">
+          <button class="btn-tag" id="examStep2Back"><i class="bi bi-arrow-left"></i> 上一步</button>
+          <div class="d-flex gap-2 flex-grow-1 justify-content-end">
+            <button class="btn-seal btn-seal-jade flex-grow-1" id="startExamBtn" style="display:none"><i class="bi bi-play-fill me-1"></i>开考</button>
+            <button type="submit" form="examModeAddForm" class="btn-seal btn-seal-jade flex-grow-1" style="display:none" id="addModeBtn"><i class="bi bi-plus-circle me-1"></i>立此模式</button>
           </div>
         </div>
       </div>`;
 
-    // Back button
     document.getElementById('examStep2Back').addEventListener('click', async () => {
       await this._examGoToStep(1);
     });
 
-    // Toggle card width on tab switch
     const examModeTabs = document.getElementById('examModeTabs');
     examModeTabs.addEventListener('shown.bs.tab', (e) => {
-      const card = content.querySelector('.card');
-      const wrapper = content.querySelector('.wizard-step-content');
       const startBtn = document.getElementById('startExamBtn');
       const addBtn = document.getElementById('addModeBtn');
-      if (!card) return;
       if (e.target.dataset.bsTarget === '#modeAdd') {
-        card.classList.add('content-narrow-center');
-        if (wrapper) wrapper.style.maxWidth = 'none';
         if (startBtn) startBtn.style.display = 'none';
         if (addBtn) addBtn.style.display = 'inline-block';
       } else {
-        card.classList.remove('content-narrow-center');
-        if (wrapper) wrapper.style.maxWidth = '480px';
         if (startBtn) startBtn.style.display = modeSelect?.value ? 'inline-block' : 'none';
         if (addBtn) addBtn.style.display = 'none';
       }
     });
 
-    // Mode select
     const modeSelect = document.getElementById('examModeSelect');
     if (modeSelect) {
       modeSelect.addEventListener('change', () => {
@@ -208,7 +200,6 @@ const _t1Page = {
       });
     }
 
-    // Delete mode — use event delegation on content (survives innerHTML replacement)
     content.addEventListener('click', async (e) => {
       const btn = e.target.closest('[data-delete-mode]');
       if (!btn) return;
@@ -221,7 +212,6 @@ const _t1Page = {
       }
     });
 
-    // Start exam
     const startBtn = document.getElementById('startExamBtn');
     if (startBtn) {
       startBtn.addEventListener('click', async () => {
@@ -236,7 +226,6 @@ const _t1Page = {
       });
     }
 
-    // Add mode form
     const addForm = document.getElementById('examModeAddForm');
     if (addForm) {
       addForm.addEventListener('submit', async (e) => {
@@ -262,22 +251,21 @@ const _t1Page = {
           bankId, name, durationMinutes: duration, passScore, configs, totalScore, createdAt: new Date().toISOString()
         });
 
-        showToast('模式添加成功', 'success');
+        showToast('模式已立', 'success');
         await this.renderExamStep2(container, bankId);
       });
     }
 
-    // Auto-calculate total score
     this.bindAutoCalc(availableTypes);
   },
 
   async renderModeSettings(bankId, modes) {
     if (modes.length === 0) {
-      return `<p class="text-muted">暂无考试模式，请前往"模式新增"创建</p>`;
+      return `<p style="font-family:var(--font-hand);color:var(--ink-faint)">尚无现成模式，去「新拟模式」立一条。</p>`;
     }
     return `
       <select class="form-select mb-3" id="examModeSelect">
-        <option value="">-- 选择考试模式 --</option>
+        <option value="">-- 择已立模式 --</option>
         ${modes.map(m => `<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('')}
       </select>
       <div id="modeInfo" style="display:none" class="mb-3"></div>`;
@@ -288,26 +276,26 @@ const _t1Page = {
       <form id="examModeAddForm">
         <div class="row g-3">
           <div class="col-md-4">
-            <label class="form-label">模式名称</label>
+            <label class="form-label">模式名</label>
             <input type="text" class="form-control" id="modeName" value="${defaultName}">
           </div>
           <div class="col-md-4">
-            <label class="form-label">考试时长（分钟）</label>
+            <label class="form-label">时长（分钟）</label>
             <input type="number" class="form-control" id="modeDuration" value="60" min="1">
           </div>
           <div class="col-md-4">
-            <label class="form-label">及格分数</label>
+            <label class="form-label">及格分</label>
             <input type="number" class="form-control" id="modePassScore" value="60" min="0" step="any">
           </div>
         </div>
-        <hr>
-        <h6>题目构成</h6>
+        <hr style="border-color:var(--color-border)">
+        <h6 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.08em">题目构成</h6>
         <div class="type-config-list">
         ${availableTypes.map(t => `
           <div class="type-col" id="typeRow_${t}">
             <div class="type-col-header">
-              <input class="form-check-input" type="checkbox" id="enable_${t}" data-type="${t}" checked>
-              <label class="form-check-label" for="enable_${t}">${TYPE_LABELS[t]}<span class="text-muted ms-1 small">(${counts[t]}题)</span></label>
+              <input class="form-check-input" type="checkbox" id="enable_${t}" data-type="${t}" checked style="border-color:var(--ink-soft)">
+              <label class="form-check-label" for="enable_${t}" style="font-family:var(--font-display);font-weight:700">${TYPE_LABELS[t]}<span class="text-muted ms-1 small">(${counts[t]}题)</span></label>
             </div>
             <div class="type-field">
               <label class="form-label" for="count_${t}">题目数量</label>
@@ -327,7 +315,9 @@ const _t1Page = {
           </div>
         `).join('')}
         </div>
-        <div class="alert alert-info mt-3">试卷总分：<strong id="examTotalScore">0</strong> 分</div>
+        <div class="alert mt-3" style="background:var(--paper-2);border:1px solid var(--color-border);color:var(--ink);font-family:var(--font-hand)">
+          试卷总分：<strong id="examTotalScore" style="font-family:var(--font-display);color:var(--seal)">0</strong> 分
+        </div>
       </form>`;
   },
 
@@ -335,25 +325,27 @@ const _t1Page = {
   async renderPracticeWizard(container) {
     const banks = await getAllBanks();
     if (banks.length === 0) {
-      container.innerHTML = `<div class="empty-state"><i class="bi bi-collection"></i><p>暂无题库，请先导入题库</p><a href="#/t2/add" class="btn btn-primary">去导入题库</a></div>`;
+      container.innerHTML = `<div class="empty-state"><i class="bi bi-folder2-open"></i><p>卷宗无题，请先录入</p><a href="#/t2/add" class="btn-seal">去录入题库</a></div>`;
       return;
     }
 
-    // Reset state
     this._pracBankId = null;
     this._pracStep = 1;
+    setHeaderActions('');
 
     container.innerHTML = `
-      <h4 class="mb-4" style="color:#1a1a1a"><i class="bi bi-journal-text me-2"></i>练习模式</h4>
-      <div class="wizard-steps mb-4">
-        <div class="wizard-step active" id="pracStep1">
-          <div class="step-circle">1</div><div class="step-label">选择题库</div>
+      <div class="wizard-scroll">
+        <h3 class="wizard-title">练 · 习 · 卷</h3>
+        <div class="wizard-steps">
+          <div class="wizard-step active" id="pracStep1">
+            <div class="step-circle">一</div><div class="step-label">择卷宗</div>
+          </div>
+          <div class="wizard-step" id="pracStep2">
+            <div class="step-circle">二</div><div class="step-label">选题目</div>
+          </div>
         </div>
-        <div class="wizard-step" id="pracStep2">
-          <div class="step-circle">2</div><div class="step-label">题目确认</div>
-        </div>
-      </div>
-      <div id="pracWizardContent"></div>`;
+        <div id="pracWizardContent"></div>
+      </div>`;
 
     this._pracBindStepClicks();
     await this.renderPracticeStep1(container, banks);
@@ -388,19 +380,24 @@ const _t1Page = {
     const content = document.getElementById('pracWizardContent');
     content.innerHTML = `
       <div class="wizard-step-content">
-        <div class="card"><div class="card-body p-4">
-          <h5 class="mb-3">步骤 1：选择题库</h5>
-          <select class="form-select mb-3" id="pracBankSelect">
-            <option value="">-- 选择题库 --</option>
-            ${banks.map(b => `<option value="${b.id}" ${savedBankId === b.id ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}
-          </select>
-          <button class="btn btn-primary w-100" id="pracNextBtn" ${savedBankId ? '' : 'disabled'}>下一步 <i class="bi bi-arrow-right"></i></button>
-        </div></div>
+        <h5 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.08em;margin:0 0 12px">一 · 择卷宗</h5>
+        <p style="font-family:var(--font-hand);color:var(--ink-soft);margin:0 0 12px">挑一本要练的题库。</p>
+        <select class="form-select mb-3" id="pracBankSelect">
+          <option value="">-- 择卷 --</option>
+          ${banks.map(b => `<option value="${b.id}" ${savedBankId === b.id ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}
+        </select>
+        <button class="btn-seal btn-seal-jade w-100" id="pracNextBtn" ${savedBankId ? '' : 'style="opacity:0.5;pointer-events:none"'}>
+          下一步 <i class="bi bi-arrow-right ms-1"></i>
+        </button>
       </div>`;
 
     document.getElementById('pracBankSelect').addEventListener('change', (e) => {
-      document.getElementById('pracNextBtn').disabled = !e.target.value;
+      const btn = document.getElementById('pracNextBtn');
+      const empty = !e.target.value;
+      btn.style.opacity = empty ? '0.5' : '';
+      btn.style.pointerEvents = empty ? 'none' : '';
     });
+
     document.getElementById('pracNextBtn').addEventListener('click', async () => {
       const bankId = parseInt(document.getElementById('pracBankSelect').value);
       this._pracBankId = bankId;
@@ -420,16 +417,16 @@ const _t1Page = {
 
     const content = document.getElementById('pracWizardContent');
     content.innerHTML = `
-      <div class="content-narrow-center">
-        <div class="card"><div class="card-body">
-        <h5>步骤 2：题目确认</h5>
+      <div class="wizard-step-content">
+        <h5 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.08em;margin:0 0 12px">二 · 选题目</h5>
+        <p style="font-family:var(--font-hand);color:var(--ink-soft);margin:0 0 12px">「${escapeHtml(bank.name)}」的练习范围。</p>
         <form id="pracConfigForm">
           <div class="type-config-list">
           ${availableTypes.map(t => `
             <div class="type-col" id="pracTypeRow_${t}">
               <div class="type-col-header">
-                <input class="form-check-input" type="checkbox" id="prac_enable_${t}" data-type="${t}" checked>
-                <label class="form-check-label" for="prac_enable_${t}">${TYPE_LABELS[t]}<span class="text-muted ms-1 small">(${counts[t]}题)</span></label>
+                <input class="form-check-input" type="checkbox" id="prac_enable_${t}" data-type="${t}" checked style="border-color:var(--ink-soft)">
+                <label class="form-check-label" for="prac_enable_${t}" style="font-family:var(--font-display);font-weight:700">${TYPE_LABELS[t]}<span class="text-muted ms-1 small">(${counts[t]}题)</span></label>
               </div>
               <div class="type-field">
                 <label class="form-label" for="prac_start_${t}">起始题号</label>
@@ -450,11 +447,10 @@ const _t1Page = {
           `).join('')}
           </div>
           <div class="d-flex gap-2 mt-3">
-            <button type="button" class="btn btn-outline-secondary" id="pracStep2Back"><i class="bi bi-arrow-left"></i> 上一步</button>
-            <button type="submit" class="btn btn-success btn-lg flex-grow-1"><i class="bi bi-play-fill me-1"></i>开始练习</button>
+            <button type="button" class="btn-tag" id="pracStep2Back"><i class="bi bi-arrow-left"></i> 上一步</button>
+            <button type="submit" class="btn-seal btn-seal-jade btn-seal-lg flex-grow-1"><i class="bi bi-play-fill me-1"></i>开练</button>
           </div>
         </form>
-      </div></div>
       </div>`;
 
     document.getElementById('pracStep2Back').addEventListener('click', async () => {
@@ -506,10 +502,10 @@ const _t1Page = {
 window._t1Page = _t1Page;
 
 function renderModeInfo(mode) {
-  return `<div class="card bg-light"><div class="card-body p-3">
-    <h6>${escapeHtml(mode.name)}</h6>
-    <p class="mb-1 small">时长：${mode.durationMinutes} 分钟 | 及格分：${mode.passScore} | 总分：${mode.totalScore}</p>
-    <div class="small text-muted">${(mode.configs || []).map(c => `${TYPE_LABELS_SHORT[c.type]} ${c.count}道×${c.points}分`).join(' / ')}</div>
-    <button class="btn btn-sm btn-outline-danger mt-2" data-delete-mode="${mode.id}"><i class="bi bi-trash me-1"></i>删除此模式</button>
-  </div></div>`;
+  return `<div class="paper-card" style="margin-bottom:0;background:var(--paper-2)">
+    <h6 style="font-family:var(--font-display);color:var(--ink);font-weight:700;margin:0 0 6px">${escapeHtml(mode.name)}</h6>
+    <p style="margin:0 0 4px;font-size:0.9rem;color:var(--ink-soft)">时长：${mode.durationMinutes} 分钟 · 及格分：${mode.passScore} · 总分：${mode.totalScore}</p>
+    <div style="font-size:0.85rem;color:var(--ink-faint);font-family:var(--font-hand)">${(mode.configs || []).map(c => `${TYPE_LABELS_SHORT[c.type]} ${c.count}道×${c.points}分`).join(' · ')}</div>
+    <button class="btn-tag" style="margin-top:8px;color:var(--seal);border-color:var(--seal)" data-delete-mode="${mode.id}"><i class="bi bi-trash me-1"></i>删此模式</button>
+  </div>`;
 }
