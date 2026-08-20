@@ -218,7 +218,8 @@ const _t5PaperPage = {
         <h5 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.08em;margin:0 0 12px">三 · 生成</h5>
         <div class="paper-card" style="background:var(--paper-2)">
           <h6 style="font-family:var(--font-display);color:var(--ink);font-weight:700;margin:0 0 8px">试卷配置</h6>
-          <p style="margin:0 0 8px;font-family:var(--font-hand);color:var(--ink-soft)">题库：《${escapeHtml(bank.name)}》 · 时长：${this._duration} 分钟 · 总分：${this._totalScore} 分</p>
+          <p style="margin:0 0 4px;font-family:var(--font-hand);color:var(--ink-soft)">题库：《${escapeHtml(bank.name)}》</p>
+          <p style="margin:0 0 8px;font-family:var(--font-hand);color:var(--ink-soft)">时长：${this._duration} 分钟 · 总分：${this._totalScore} 分</p>
           <table class="table table-sm" style="background:transparent">
             <thead><tr><th>题型</th><th>数量</th><th>分值</th><th>选项乱序</th></tr></thead>
             <tbody>${summaryHtml}</tbody>
@@ -236,12 +237,11 @@ const _t5PaperPage = {
               <option value="A3">A3 横</option>
             </select>
           </div>
-          <div class="col-md-3 d-flex align-items-end">
-            <button class="btn-seal btn-seal-gold w-100" id="t5DownloadBtn"><i class="bi bi-download me-1"></i>下载</button>
-          </div>
+          <div class="col-md-3"></div>
         </div>
-        <div class="mt-3">
-          <button class="btn-tag" id="t5Step3Back"><i class="bi bi-arrow-left"></i> 上一步</button>
+        <div class="d-flex gap-2 mt-3">
+          <button type="button" class="btn-tag" id="t5Step3Back"><i class="bi bi-arrow-left"></i> 上一步</button>
+          <button class="btn-seal btn-seal-gold flex-grow-1" id="t5DownloadBtn"><i class="bi bi-download me-1"></i>下载试卷</button>
         </div>
       </div>`;
 

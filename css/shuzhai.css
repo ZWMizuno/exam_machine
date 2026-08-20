@@ -2778,6 +2778,81 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 }
 .form-control::placeholder { color: var(--ink-faint); font-family: var(--font-hand); }
 
+/* === Comment: 下拉框 / 开关 古风化 === */
+/* form-select — 用 paper 底 + 墨边 + 楷体字，箭头换成古典角符 */
+.form-select {
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%),
+                    linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%) !important;
+  background-position: calc(100% - 16px) 50%, calc(100% - 10px) 50% !important;
+  background-size: 6px 6px, 6px 6px !important;
+  background-repeat: no-repeat !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 32px !important;
+  font-family: var(--font-body);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+/* select 打开时下拉选项也用 paper 底 + 墨字（部分浏览器限制） */
+.form-select option {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+/* form-switch 加大 + 古风化 (绿松石 + 玉钉) */
+.form-switch {
+  padding-left: 3.2em;
+  min-height: 1.6em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.form-switch .form-check-input {
+  width: 2.6em !important;
+  height: 1.4em !important;
+  margin-left: -3.2em !important;
+  background-image: none !important;
+  background-color: var(--paper-3) !important;
+  border: 1.5px solid var(--ink-soft) !important;
+  border-radius: 1em !important;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+.form-switch .form-check-input::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 2px;
+  transform: translateY(-50%);
+  width: 1em; height: 1em;
+  background: var(--paper);
+  border: 1px solid var(--ink-soft);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease, background 0.18s ease;
+}
+.form-switch .form-check-input:checked {
+  background-color: var(--jade) !important;
+  border-color: var(--jade) !important;
+}
+.form-switch .form-check-input:checked::after {
+  transform: translateY(-50%) translateX(1.1em);
+  background: #FFF9E6;
+  border-color: rgba(0,0,0,0.1);
+}
+.form-switch .form-check-input:focus {
+  box-shadow: 0 0 0 3px var(--jade-bg) !important;
+}
+.form-switch .form-check-label {
+  font-family: var(--font-hand);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
 .form-check-input {
   background-color: var(--paper) !important;
   border: 1.5px solid var(--ink-soft) !important;
@@ -2820,13 +2895,7 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 }
 
 .form-switch .form-check-input {
-  background-image: none;
-  background-color: var(--paper-3) !important;
-  border-color: var(--paper-3) !important;
-}
-.form-switch .form-check-input:checked {
-  background-color: var(--jade) !important;
-  border-color: var(--jade) !important;
+  /* (古风化版在前面 .form-switch 块 — 保留这里兼容其他用法) */
 }
 
 .input-group-text {
