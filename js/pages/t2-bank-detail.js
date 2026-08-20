@@ -97,7 +97,6 @@ const _t2DetailPage = {
             <i class="bi bi-x"></i>
           </button>
         </div>
-        <span class="t2-search-hint"><i class="bi bi-keyboard"></i> ← / → 翻页</span>
       </div>
 
       <div class="exam-layout">
@@ -113,6 +112,7 @@ const _t2DetailPage = {
               <button class="btn-tag" id="t2DetailPrevBtn" ${t2DetailCurrentIndex === 0 ? 'disabled' : ''} title="上一题 (←)"><i class="bi bi-chevron-left"></i> 上一题</button>
               <span class="exam-pager-counter" id="t2DetailPagerCount">${t2DetailCurrentIndex + 1} / ${totalQ || 0}</span>
               <button class="btn-tag" id="t2DetailNextBtn" ${t2DetailCurrentIndex === (t2DetailAllQuestions.length - 1) ? 'disabled' : ''} title="下一题 (→)">下一题 <i class="bi bi-chevron-right"></i></button>
+              <span class="t2-pager-hint"><i class="bi bi-keyboard"></i> ← / → 翻页</span>
             </div>
           </div>
         </section>
