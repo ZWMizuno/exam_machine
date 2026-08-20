@@ -359,59 +359,46 @@ body {
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 1;
 }
-/* 装订线眼 — 4 个圆孔 — 用 logo 色 (4 套色之一) */
-.book-card::after {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 14%;
-  z-index: 2;
-  background-image:
-    radial-gradient(circle at 50% 14%, var(--logo) 0 1.6px, transparent 2.4px),
-    radial-gradient(circle at 50% 38%, var(--logo) 0 1.6px, transparent 2.4px),
-    radial-gradient(circle at 50% 62%, var(--logo) 0 1.6px, transparent 2.4px),
-    radial-gradient(circle at 50% 86%, var(--logo) 0 1.6px, transparent 2.4px);
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.5));
-}
+/* (装订线已删 — user 改要) */
 
 /* === 题签 (title slip on cover top) === */
 .book-card .book-logo {
   position: absolute;
-  top: 5%;
-  left: 50%;
-  transform: translateX(-50%) rotate(-4deg);
-  transform-origin: center;
+  top: 6%;
+  left: 22%;                     /* 越过 14% 书脊带，落在封皮左上角 */
   z-index: 4;
-  /* 篆刻方印 — bank 名字首字 */
-  width: 2em;
-  height: 2em;
+  /* 篆刻方印 — bank 名字首字 — 4th 色 (logo) 作印泥 */
+  width: 1.85em;
+  height: 1.85em;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bookmark);
-  color: var(--bm-text);
+  background: var(--logo);
+  color: var(--logo-text, #1a1a1a);
   font-family: 'STKaiti', 'KaiTi', '楷体', 'Noto Serif SC', 'Source Han Serif SC', serif;
   font-weight: 700;
-  font-size: 1.25em;
+  font-size: 1.2em;
   line-height: 1;
   border-radius: 2px;
   /* 印泥微飞白 + 内边 */
   box-shadow:
-    0 0 0 2px rgba(255, 255, 255, 0.18),
-    0 0 0 3px rgba(0, 0, 0, 0.08),
-    0 2px 4px rgba(0, 0, 0, 0.35);
+    0 0 0 2px rgba(0, 0, 0, 0.1),
+    0 0 0 3px rgba(255, 255, 255, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.4);
   filter: contrast(1.05) saturate(1.1);
-  /* 印泥边缘不齐的微动 */
+  /* 印泥边缘不齐的微动 + 微旋 */
   clip-path: polygon(
     2% 1%, 8% 0%, 50% 0.5%, 92% 0%, 99% 2%,
     100% 50%, 99% 92%, 100% 99%,
     92% 100%, 50% 99.5%, 8% 100%, 1% 99%,
     0% 50%, 0.5% 8%
   );
+  transform: rotate(-4deg);
+  transform-origin: center;
   transition: transform 0.32s cubic-bezier(.2,.7,.3,1.3);
 }
 .book-card:hover .book-logo {
-  transform: translateX(-50%) rotate(-4deg) scale(1.1);
+  transform: rotate(-4deg) scale(1.1);
 }
 
 /* === 书名 (vertical title) === */

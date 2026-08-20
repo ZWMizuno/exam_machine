@@ -70,6 +70,16 @@ function getBookmarkTextColor(bookmarkHex) {
   return lum > 0.6 ? '#1a1a1a' : '#ffffff';
 }
 
+// 印文色 — 跟 getBookmarkTextColor 一样的 luma 阈值，但阈值稍微高一点
+// 因为 logo 色常更浅（多用 #FCC96E/#9FE7E6 这种亮色作点缀）
+function getLogoTextColor(logoHex) {
+  const r = parseInt(logoHex.slice(1, 3), 16);
+  const g = parseInt(logoHex.slice(3, 5), 16);
+  const b = parseInt(logoHex.slice(5, 7), 16);
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.55 ? '#1a1a1a' : '#ffffff';
+}
+
 let t4ReviewEngine = null;
 let t4DetailAllQuestions = [];
 let t4DetailQuestionsByType = {};
@@ -109,8 +119,9 @@ const _t4WrongbookPage = {
         var b = books[i];
         var scheme = BOOK_COLOR_SCHEMES[b.colorIndex != null ? b.colorIndex : i % BOOK_COLOR_SCHEMES.length];
         var bmText = getBookmarkTextColor(scheme.bookmark);
+        var logoText = getLogoTextColor(scheme.logo);
         html += '<div class="book-wrapper">' +
-          '<div class="book-card" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + bmText + '" onclick="location.hash=\'#/t4/' + b.bankId + '\'">' +
+          '<div class="book-card" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + bmText + ';--logo-text:' + logoText + '" onclick="location.hash=\'#/t4/' + b.bankId + '\'">' +
             '<div class="book-logo" aria-hidden="true">' + escapeHtml((b.bankName || '卷').trim().charAt(0) || '卷') + '</div>' +
             '<div class="book-body">' +
               '<div class="book-name">' + escapeHtml(b.bankName) + '</div>' +
