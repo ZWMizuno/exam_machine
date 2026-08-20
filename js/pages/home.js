@@ -51,7 +51,7 @@ const _homePage = {
             '<p style="margin:0;font-family:var(--font-hand);color:var(--ink-soft);font-size:1.05rem;line-height:1.7">',
               '点左栏「<strong style="color:var(--jade)">贡院</strong>」可开始一次新的考试或练习。',
               '点「<strong style="color:var(--seal)">卷宗</strong>」管理你的题库。',
-              '错题会自动收入「<strong style="color:var(--jade)">拾遗</strong>」书铺，扫一遍错题收获颇多。',
+              '错题会自动收入「<strong style="color:#9FE7E6">拾遗</strong>」书铺，扫一遍错题收获颇多。',
             '</p>',
           '</div>',
 
