@@ -24,27 +24,27 @@ const _t1Page = {
       <div class="content-narrow">
         <header class="page-header">
           <div class="page-header__title">
-            <i class="bi bi-pencil-square"></i>
+            <i class="bi bi-pencil-square" aria-hidden="true"></i>
             <h3>考试 & 练习</h3>
             <span class="subtitle">选择一种模式开始</span>
           </div>
-          <div class="page-header__index">
+          <div class="page-header__index" aria-label="位置 01 / 02">
             <strong>01 / 02</strong>
             <span>SELECT MODE</span>
           </div>
         </header>
 
-        <div class="row g-3">
+        <div class="row g-3" role="group" aria-label="模式选择">
           <div class="col-md-6">
-            <a href="#/t1/exam" class="action-card" style="padding:var(--s-6) var(--s-5)">
-              <i class="bi bi-pencil-square"></i>
+            <a href="#/t1/exam" class="action-card" style="padding:var(--s-6) var(--s-5)" aria-label="进入考试模式">
+              <i class="bi bi-pencil-square" aria-hidden="true"></i>
               <div class="action-card__label" style="font-size:1.1rem">考试模式</div>
               <div class="action-card__hint">计时考试，自动评分，记录成绩</div>
             </a>
           </div>
           <div class="col-md-6">
-            <a href="#/t1/practice" class="action-card" style="padding:var(--s-6) var(--s-5)">
-              <i class="bi bi-journal-text"></i>
+            <a href="#/t1/practice" class="action-card" style="padding:var(--s-6) var(--s-5)" aria-label="进入练习模式">
+              <i class="bi bi-journal-text" aria-hidden="true"></i>
               <div class="action-card__label" style="font-size:1.1rem">练习模式</div>
               <div class="action-card__hint">自由练习，即时纠错，查漏补缺</div>
             </a>
@@ -68,11 +68,11 @@ const _t1Page = {
     container.innerHTML = `
       <header class="page-header">
         <div class="page-header__title">
-          <i class="bi bi-pencil-square"></i>
+          <i class="bi bi-pencil-square" aria-hidden="true"></i>
           <h3>考试模式</h3>
           <span class="subtitle">计时考试 · 自动评分</span>
         </div>
-        <div class="page-header__index">
+        <div class="page-header__index" aria-label="位置 02 / 02">
           <strong>02 / 02</strong>
           <span>EXAM WIZARD</span>
         </div>
@@ -366,11 +366,11 @@ const _t1Page = {
     container.innerHTML = `
       <header class="page-header">
         <div class="page-header__title">
-          <i class="bi bi-journal-text"></i>
+          <i class="bi bi-journal-text" aria-hidden="true"></i>
           <h3>练习模式</h3>
           <span class="subtitle">自由练习 · 即时纠错</span>
         </div>
-        <div class="page-header__index">
+        <div class="page-header__index" aria-label="位置 02 / 02">
           <strong>02 / 02</strong>
           <span>PRACTICE WIZARD</span>
         </div>

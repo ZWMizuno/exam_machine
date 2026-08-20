@@ -125,18 +125,18 @@ const _t4WrongbookPage = {
         const idx = b.colorIndex != null ? b.colorIndex : i % BOOK_COLOR_SCHEMES.length;
         const scheme = BOOK_COLOR_SCHEMES[idx];
         const bmText = getBookmarkTextColor(scheme.bookmark);
-        html += '<div class="book-wrapper">' +
-          '<div class="book-card" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + bmText + '" onclick="location.hash=\'#/t4/' + b.bankId + '\'">' +
+        html += '<div class="book-wrapper" role="listitem">' +
+          '<div class="book-card" style="--logo:' + scheme.logo + ';--text:' + scheme.text + ';--bookmark:' + scheme.bookmark + ';--book:' + scheme.book + ';--bm-text:' + bmText + '" onclick="location.hash=\'#/t4/' + b.bankId + '\'" role="button" tabindex="0" aria-label="进入《' + escapeHtml(b.bankName) + '》错题详情">' +
             '<div class="book-card__swatch">' +
-              '<i class="bi bi-book-fill book-card__logo"></i>' +
-              '<div class="book-card__bookmark"></div>' +
+              '<i class="bi bi-book-fill book-card__logo" aria-hidden="true"></i>' +
+              '<div class="book-card__bookmark" aria-hidden="true"></div>' +
             '</div>' +
             '<div class="book-card__body">' +
               '<div class="book-card__name">' + escapeHtml(b.bankName) + '</div>' +
               '<div class="book-card__count">' + (b.count || 0) + ' 题</div>' +
             '</div>' +
           '</div>' +
-          '<div class="book-label" onclick="t4OpenSkinPopup(this,' + b.bankId + ')" title="点击更换皮肤"><i class="bi bi-palette-fill"></i><span>' + escapeHtml(scheme.name) + '</span></div>' +
+          '<div class="book-label" onclick="t4OpenSkinPopup(this,' + b.bankId + ')" title="点击更换皮肤" role="button" tabindex="0" aria-label="更换《' + escapeHtml(b.bankName) + '》的皮肤，当前：' + escapeHtml(scheme.name) + '"><i class="bi bi-palette-fill" aria-hidden="true"></i><span>' + escapeHtml(scheme.name) + '</span></div>' +
         '</div>';
       }
       document.getElementById('t4BookGrid').innerHTML = html;
@@ -146,16 +146,16 @@ const _t4WrongbookPage = {
       <div class="content-narrow-4-5">
         <header class="page-header">
           <div class="page-header__title">
-            <i class="bi bi-book"></i>
+            <i class="bi bi-book" aria-hidden="true"></i>
             <h3>错题集</h3>
             <span class="subtitle">共 ${books.length} 本 · 按题库归类</span>
           </div>
-          <div class="page-header__index">
+          <div class="page-header__index" aria-label="错题集索引">
             <strong>${String(books.length).padStart(2, '0')}</strong>
             <span>WRONG BOOK</span>
           </div>
         </header>
-        <div class="book-grid" id="t4BookGrid"></div>
+        <div class="book-grid" id="t4BookGrid" role="list" aria-label="错题本题库列表"></div>
       </div>`;
 
     renderBookCards();
@@ -192,14 +192,14 @@ const _t4WrongbookPage = {
     container.innerHTML = `
       <header class="page-header">
         <div class="page-header__title">
-          <a href="#/t4" class="text-decoration-none" style="color:var(--ink-faint)"><i class="bi bi-arrow-left"></i></a>
-          <i class="bi bi-book"></i>
+          <a href="#/t4" class="text-decoration-none" style="color:var(--ink-faint)" aria-label="返回错题集"><i class="bi bi-arrow-left" aria-hidden="true"></i></a>
+          <i class="bi bi-book" aria-hidden="true"></i>
           <h3>《${escapeHtml(bank.name)}》</h3>
           <span class="subtitle">错题本</span>
         </div>
         <div class="page-header__actions">
-          <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.78rem" id="t4DetailCount">${wrongQs.length} 题</span>
-          <button class="btn btn-primary" onclick="t4OpenReviewModal(${bankId})"><i class="bi bi-lightbulb me-1"></i>错题扫盲</button>
+          <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.78rem" id="t4DetailCount" aria-label="错题数量">${wrongQs.length} 题</span>
+          <button class="btn btn-primary" onclick="t4OpenReviewModal(${bankId})" aria-label="开始错题扫盲"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i>错题扫盲</button>
         </div>
       </header>
       <div class="exam-layout exam-layout--no-scroll">
@@ -270,8 +270,8 @@ const _t4WrongbookPage = {
 
     area.innerHTML = `
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.05em">${t4DetailCurrentIndex + 1} / ${total}</span>
-        <button class="btn btn-outline-danger btn-icon-sm" id="t4DetailDeleteBtn" title="从错题本移除"><i class="bi bi-trash"></i></button>
+        <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.05em" aria-label="当前位置">${t4DetailCurrentIndex + 1} / ${total}</span>
+        <button class="btn btn-outline-danger btn-icon-sm" id="t4DetailDeleteBtn" title="从错题本移除" aria-label="从错题本移除当前题目"><i class="bi bi-trash" aria-hidden="true"></i></button>
       </div>
       ${renderQuestion({
         id: wq.id,
@@ -291,11 +291,11 @@ const _t4WrongbookPage = {
         sessionNumber: wq.number,
       })}
       <div class="d-flex justify-content-between align-items-center mt-3">
-        <button class="btn btn-outline-primary" id="t4DetailPrevBtn" ${isFirst ? 'disabled' : ''}><i class="bi bi-chevron-left"></i> 上一题</button>
-        <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.78rem">${t4DetailCurrentIndex + 1} / ${total}</span>
-        <button class="btn btn-outline-primary" id="t4DetailNextBtn" ${isLast ? 'disabled' : ''}>下一题 <i class="bi bi-chevron-right"></i></button>
+        <button class="btn btn-outline-primary" id="t4DetailPrevBtn" ${isFirst ? 'disabled' : ''} aria-label="上一题"><i class="bi bi-chevron-left" aria-hidden="true"></i> 上一题</button>
+        <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.78rem" aria-label="当前位置">${t4DetailCurrentIndex + 1} / ${total}</span>
+        <button class="btn btn-outline-primary" id="t4DetailNextBtn" ${isLast ? 'disabled' : ''} aria-label="下一题">下一题 <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
       </div>
-      <div class="text-center mt-2" style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.05em"><i class="bi bi-keyboard me-1"></i>← →</div>`;
+      <div class="text-center mt-2" style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.05em" aria-label="键盘快捷键"><i class="bi bi-keyboard me-1" aria-hidden="true"></i>← →</div>`;
 
     // Delete handler
     const delBtn = document.getElementById('t4DetailDeleteBtn');
@@ -505,8 +505,8 @@ const _t4WrongbookPage = {
     container.innerHTML = `
       <header class="page-header">
         <div class="page-header__title">
-          <a href="#/t4/${bankId}" class="text-decoration-none" style="color:var(--ink-faint)"><i class="bi bi-arrow-left"></i></a>
-          <i class="bi bi-lightbulb"></i>
+          <a href="#/t4/${bankId}" class="text-decoration-none" style="color:var(--ink-faint)" aria-label="返回错题详情"><i class="bi bi-arrow-left" aria-hidden="true"></i></a>
+          <i class="bi bi-lightbulb" aria-hidden="true"></i>
           <h3>错题扫盲</h3>
         </div>
         <div class="page-header__index">

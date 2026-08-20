@@ -108,7 +108,7 @@ const _t1SessionPage = {
             <div class="d-flex align-items-center gap-2">
               <button class="btn btn-outline-primary" id="btnPrev" onclick="_t1SessionPage.navPrev()"><i class="bi bi-chevron-left"></i> 上一题</button>
               <button class="btn btn-outline-primary" id="btnNext" onclick="_t1SessionPage.navNext()">下一题 <i class="bi bi-chevron-right"></i></button>
-              <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.05em"><i class="bi bi-keyboard me-1"></i>← →</span>
+              <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.05em"><i class="bi bi-keyboard me-1" aria-hidden="true"></i>← →</span>
             </div>
             <div class="d-flex gap-2">
               <button class="btn btn-danger btn-lg" id="btnEnd" onclick="_t1SessionPage.endSession()"><i class="bi bi-stop-circle me-1"></i>结束${isExam ? '考试' : '练习'}</button>

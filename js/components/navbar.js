@@ -18,41 +18,41 @@ function renderNavbar() {
   ];
 
   const navLinks = links.map(l =>
-    `<li class="nav-item"><a id="nav-${l.href.replace('#/', '').replace(/\//g, '-')}" class="nav-link" href="${l.href}"><i class="bi ${l.icon} me-1"></i>${l.label}</a></li>`
+    `<li class="nav-item" role="none"><a id="nav-${l.href.replace('#/', '').replace(/\//g, '-')}" class="nav-link" href="${l.href}" role="menuitem"><i class="bi ${l.icon} me-1" aria-hidden="true"></i>${l.label}</a></li>`
   ).join('');
 
   container.innerHTML = `
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-lg" aria-label="主导航">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#/home">
-          <span class="navbar-mark">EM</span>
+        <a class="navbar-brand" href="#/home" aria-label="考试机首页">
+          <span class="navbar-mark" aria-hidden="true">EM</span>
           <span>考试机</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-links">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-links" aria-label="切换导航菜单" aria-expanded="false">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbar-links">
-          <ul class="navbar-nav me-auto">${navLinks}</ul>
+          <ul class="navbar-nav me-auto" role="menubar">${navLinks}</ul>
           <span class="navbar-text d-flex align-items-center gap-3 me-3" id="navbar-user">
             <div class="coin-badge" id="coinDisplay">
-              <span class="coin-help-btn" id="coinHelpBtn" title="硬币获取规则：考试/练习每答对一道题奖励1枚；错题扫盲每掌握一道奖励1枚">
-                <i class="bi bi-question-circle-fill"></i>
+              <span class="coin-help-btn" id="coinHelpBtn" role="button" tabindex="0" aria-label="查看硬币获取规则">
+                <i class="bi bi-question-circle-fill" aria-hidden="true"></i>
               </span>
-              <svg class="coin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg class="coin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" fill="#B07A1B" stroke="#1A1D29" stroke-width="1.5"/>
                 <circle cx="12" cy="12" r="7" fill="#E5C97A"/>
                 <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#1A1D29" font-family="serif">$</text>
               </svg>
-              <span id="coinCount" class="coin-count">0</span>
+              <span id="coinCount" class="coin-count" aria-label="当前硬币数量">0</span>
             </div>
             <span class="user-chip">
-              <i class="bi bi-person-circle"></i>
+              <i class="bi bi-person-circle" aria-hidden="true"></i>
               <span>${escapeHtml(user.username)}</span>
-              ${user.role === 'admin' ? '<span class="role-badge">管理员</span>' : ''}
+              ${user.role === 'admin' ? '<span class="role-badge" aria-label="管理员角色">管理员</span>' : ''}
             </span>
           </span>
           <button class="btn-icon-flat" onclick="confirmLogout()" title="退出登录" aria-label="退出登录">
-            <i class="bi bi-box-arrow-right"></i>
+            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
           </button>
         </div>
       </div>

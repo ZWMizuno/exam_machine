@@ -25,7 +25,7 @@ const _loginPage = {
       <div class="login-page">
         <div class="login-card">
           <div class="login-card__brand">
-            <div class="login-card__brand-mark">EM</div>
+            <div class="login-card__brand-mark" aria-hidden="true">EM</div>
             <div class="login-card__brand-text">
               <span class="login-card__brand-title">考试机</span>
               <span class="login-card__brand-sub">EXAM MACHINE</span>
@@ -40,32 +40,36 @@ const _loginPage = {
             <button type="button" class="login-mode-switch__btn ${!isLogin ? 'active' : ''}" data-mode="register" role="tab">注册</button>
           </div>
 
-          <form class="login-form" id="loginForm">
+          <form class="login-form" id="loginForm" novalidate>
             <div>
-              <input class="form-control" name="username" placeholder="用户名" type="text" required minlength="2" autocomplete="username" />
+              <label for="login-username" class="sr-only">用户名</label>
+              <input class="form-control" id="login-username" name="username" placeholder="用户名" type="text" required minlength="2" autocomplete="username" aria-required="true" />
             </div>
             ${isLogin ? `
               <div class="login-input-wrapper">
-                <input class="form-control" name="password" placeholder="密码" type="password" required autocomplete="current-password" />
-                <button type="button" class="password-toggle-btn" aria-label="切换密码可见性" tabindex="-1">
-                  <i class="bi bi-eye"></i>
+                <label for="login-password" class="sr-only">密码</label>
+                <input class="form-control" id="login-password" name="password" placeholder="密码" type="password" required autocomplete="current-password" aria-required="true" />
+                <button type="button" class="password-toggle-btn" aria-label="显示或隐藏密码" tabindex="-1">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
                 </button>
               </div>
             ` : `
               <div class="login-input-wrapper">
-                <input class="form-control" name="password" placeholder="密码（至少 4 个字符）" type="password" required minlength="4" autocomplete="new-password" />
-                <button type="button" class="password-toggle-btn" aria-label="切换密码可见性" tabindex="-1">
-                  <i class="bi bi-eye"></i>
+                <label for="login-password" class="sr-only">密码</label>
+                <input class="form-control" id="login-password" name="password" placeholder="密码（至少 4 个字符）" type="password" required minlength="4" autocomplete="new-password" aria-required="true" />
+                <button type="button" class="password-toggle-btn" aria-label="显示或隐藏密码" tabindex="-1">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
                 </button>
               </div>
               <div class="login-input-wrapper">
-                <input class="form-control" name="password2" placeholder="再次输入密码" type="password" required autocomplete="new-password" />
-                <button type="button" class="password-toggle-btn" aria-label="切换密码可见性" tabindex="-1">
-                  <i class="bi bi-eye"></i>
+                <label for="login-password2" class="sr-only">确认密码</label>
+                <input class="form-control" id="login-password2" name="password2" placeholder="再次输入密码" type="password" required autocomplete="new-password" aria-required="true" />
+                <button type="button" class="password-toggle-btn" aria-label="显示或隐藏密码" tabindex="-1">
+                  <i class="bi bi-eye" aria-hidden="true"></i>
                 </button>
               </div>
             `}
-            <button type="submit" class="login-form__submit">${submitText}</button>
+            <button type="submit" class="login-form__submit" aria-busy="false">${submitText}</button>
           </form>
 
           ${isLogin ? `<div class="login-form__hint">默认管理员：admin / admin123</div>` : ''}
@@ -90,16 +94,17 @@ const _loginPage = {
       const password = e.target.password.value;
       const password2 = e.target.password2 ? e.target.password2.value : null;
       const submitBtn = form.querySelector('button[type="submit"]');
-      const busy = busyText;
-      submitBtn.disabled = true;
       const original = submitBtn.textContent;
-      submitBtn.textContent = busy;
+      submitBtn.disabled = true;
+      submitBtn.setAttribute('aria-busy', 'true');
+      submitBtn.innerHTML = '<span class="spinner" aria-hidden="true"></span>' + busyText;
 
       try {
         if (_loginMode === 'register') {
           if (password !== password2) {
             showToast('两次输入的密码不一致', 'warning');
             submitBtn.disabled = false;
+            submitBtn.setAttribute('aria-busy', 'false');
             submitBtn.textContent = original;
             return;
           }
@@ -111,6 +116,7 @@ const _loginPage = {
           } else {
             showToast(result.message, 'error');
             submitBtn.disabled = false;
+            submitBtn.setAttribute('aria-busy', 'false');
             submitBtn.textContent = original;
           }
         } else {
@@ -122,12 +128,14 @@ const _loginPage = {
           } else {
             showToast(result.message, 'error');
             submitBtn.disabled = false;
+            submitBtn.setAttribute('aria-busy', 'false');
             submitBtn.textContent = original;
           }
         }
       } catch (err) {
         showToast('操作失败：' + (err.message || '未知错误'), 'error');
         submitBtn.disabled = false;
+        submitBtn.setAttribute('aria-busy', 'false');
         submitBtn.textContent = original;
       }
     });
@@ -149,7 +157,11 @@ const _loginPage = {
         const selEnd = input.selectionEnd;
         input.type = showing ? 'password' : 'text';
         const icon = btn.querySelector('i');
-        if (icon) icon.className = showing ? 'bi bi-eye' : 'bi bi-eye-slash';
+        if (icon) {
+          icon.className = showing ? 'bi bi-eye' : 'bi bi-eye-slash';
+          icon.setAttribute('aria-hidden', 'true');
+        }
+        btn.setAttribute('aria-label', showing ? '显示密码' : '隐藏密码');
         setTimeout(() => {
           if (document.activeElement === input) {
             try { input.setSelectionRange(selStart, selEnd); } catch (_) {}

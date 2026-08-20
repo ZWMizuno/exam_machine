@@ -23,11 +23,11 @@ const _t5PaperPage = {
     container.innerHTML = `
       <header class="page-header">
         <div class="page-header__title">
-          <i class="bi bi-file-earmark-text"></i>
+          <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
           <h3>试卷生成</h3>
           <span class="subtitle">从题库导出 Word 试卷</span>
         </div>
-        <div class="page-header__index">
+        <div class="page-header__index" aria-label="位置 03 / 03">
           <strong>03 / 03</strong>
           <span>PAPER WIZARD</span>
         </div>

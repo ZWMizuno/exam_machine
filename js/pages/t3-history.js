@@ -21,22 +21,24 @@ const _t3HistoryPage = {
       <div class="content-narrow">
         <header class="page-header">
           <div class="page-header__title">
-            <i class="bi bi-clock-history"></i>
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
             <h3>历史记录</h3>
             <span class="subtitle">共 ${total} 条</span>
           </div>
-          <div class="page-header__index">
+          <div class="page-header__index" aria-label="历史索引">
             <strong>${String(total).padStart(2, '0')}</strong>
             <span>RECORDS</span>
           </div>
         </header>
 
         <div class="d-flex gap-2 mb-3">
-          <select class="form-select" id="t3FilterBank" style="max-width:240px">
+          <label for="t3FilterBank" class="sr-only">按题库筛选</label>
+          <select class="form-select" id="t3FilterBank" style="max-width:240px" aria-label="按题库筛选">
             <option value="">全部题库</option>
             ${banks.map(b => `<option value="${b.id}" ${t3FilterBank === String(b.id) ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('')}
           </select>
-          <select class="form-select" id="t3FilterType" style="max-width:160px">
+          <label for="t3FilterType" class="sr-only">按类型筛选</label>
+          <select class="form-select" id="t3FilterType" style="max-width:160px" aria-label="按类型筛选">
             <option value="all" ${t3FilterType === 'all' ? 'selected' : ''}>全部类型</option>
             <option value="exam" ${t3FilterType === 'exam' ? 'selected' : ''}>考试</option>
             <option value="practice" ${t3FilterType === 'practice' ? 'selected' : ''}>练习</option>

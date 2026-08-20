@@ -31,7 +31,7 @@
   /* Color — paper / ink */
   --ink:        #1A1D29;   /* primary text, headings */
   --ink-mid:    #5B6075;   /* secondary text */
-  --ink-faint:  #A4A8B8;   /* tertiary, hints, captions */
+  --ink-faint:  #767A8A;   /* tertiary, hints, captions — AA 4.5:1 vs paper */
   --paper:      #FAFAF7;   /* page background */
   --paper-raised: #FFFFFF; /* surfaces: cards, modals, inputs */
   --paper-sunk:   #F2F0E9; /* subtle wells, code blocks */
@@ -48,8 +48,11 @@
   --success-soft: #E1F0E9;
   --danger:       #B5341C;
   --danger-soft:  #F5E5E0;
-  --warning:      #B07A1B;
+  --warning:      #8A5E13;
   --warning-soft: #F4ECD8;
+
+  /* Focus ring */
+  --focus-ring: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent);
 
   /* Type */
   --font-body:    'SourceHanSansSC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
@@ -59,6 +62,9 @@
   /* Spacing scale */
   --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
   --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+
+  /* Touch targets */
+  --touch-min: 44px;
 
   /* Lines & radius */
   --rule-w: 1px;
@@ -73,6 +79,8 @@ html, body { height: 100vh; overflow: hidden; margin: 0; }
 body {
   font-family: var(--font-body);
   font-weight: 500;
+  font-size: 16px;
+  line-height: 1.6;
   background: var(--paper);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
@@ -87,8 +95,43 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 900;
   letter-spacing: -0.01em;
   margin: 0;
+  line-height: 1.25;
 }
 hr { border: 0; border-top: var(--rule-w) solid var(--rule); margin: var(--s-5) 0; }
+
+/* === Accessibility Utilities === */
+.sr-only,
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important; height: 1px !important;
+  padding: 0 !important; margin: -1px !important;
+  overflow: hidden !important; clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important; border: 0 !important;
+}
+
+/* === Focus Indicators (CRITICAL — never disable keyboard focus) === */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+button:focus-visible,
+a:focus-visible,
+.nav-link:focus-visible,
+.action-card:focus-visible {
+  outline-offset: 3px;
+}
+.btn:focus-visible {
+  outline-offset: 2px;
+}
+.form-control:focus-visible,
+.form-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
 
 /* === Layout === */
 .app-container { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -184,7 +227,7 @@ hr { border: 0; border-top: var(--rule-w) solid var(--rule); margin: var(--s-5) 
 }
 
 .btn-icon-flat {
-  width: 32px; height: 32px;
+  width: 40px; height: 40px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -193,7 +236,7 @@ hr { border: 0; border-top: var(--rule-w) solid var(--rule); margin: var(--s-5) 
   border-radius: var(--radius);
   background: var(--paper-raised);
   color: var(--ink-mid);
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -512,17 +555,32 @@ hr { border: 0; border-top: var(--rule-w) solid var(--rule); margin: var(--s-5) 
   background: var(--paper-raised);
 }
 .btn-icon {
-  width: 32px; height: 32px; padding: 0;
+  width: 40px; height: 40px; padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: var(--radius);
+  font-size: 1rem;
 }
 .btn-icon-sm {
-  width: 28px; height: 28px; padding: 0;
+  width: 36px; height: 36px; padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: var(--radius-sm);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Loading spinner inside button (UI-UX P2) */
+.btn .spinner-border-sm,
+.btn .spinner {
+  display: inline-block;
+  width: 0.95em; height: 0.95em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+  vertical-align: -0.15em;
+  margin-right: 0.4em;
+}
+@keyframes btn-spin { to { transform: rotate(360deg); } }
 
 /* ==========================================================================
    Tables — library index card style
@@ -1588,4 +1646,31 @@ input::-webkit-strong-password-auto-fill-button {
 @media (max-width: 576px) {
   #app-content { padding: var(--s-3) var(--s-3) var(--s-4); }
   .book-grid { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================================
+   Reduced Motion — respect user OS preference
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .book-card:hover,
+  .store-book:hover,
+  .action-card:hover {
+    transform: none !important;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+@media print {
+  .navbar, .breadcrumb, .page-header__index, .toast-container,
+  .modal-container, #app-navbar, #app-breadcrumb { display: none !important; }
+  body { background: white; color: black; }
+  .question-area { border: none; box-shadow: none; }
 }

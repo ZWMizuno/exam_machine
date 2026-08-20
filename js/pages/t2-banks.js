@@ -36,10 +36,10 @@ const _t2BanksPage = {
           <td><span class="type-badge type-badge--fill">${counts.fill || 0}</span></td>
           <td><span class="type-badge type-badge--essay">${counts.essay || 0}</span></td>
           <td class="text-nowrap">
-            <button class="btn btn-outline-secondary btn-icon-sm me-1" title="查看" onclick="location.hash='#/t2/view/${bank.id}'"><i class="bi bi-eye"></i></button>
-            <button class="btn btn-outline-secondary btn-icon-sm me-1" title="导出" onclick="t2ExportWithConfirm(${bank.id}, '${escapeHtml(bank.name)}')"><i class="bi bi-download"></i></button>
+            <button class="btn btn-outline-secondary btn-icon-sm me-1" title="查看" aria-label="查看题库《${escapeHtml(bank.name)}》" onclick="location.hash='#/t2/view/${bank.id}'"><i class="bi bi-eye" aria-hidden="true"></i></button>
+            <button class="btn btn-outline-secondary btn-icon-sm me-1" title="导出" aria-label="导出题库《${escapeHtml(bank.name)}》" onclick="t2ExportWithConfirm(${bank.id}, '${escapeHtml(bank.name)}')"><i class="bi bi-download" aria-hidden="true"></i></button>
             ${isAdminUser ? `
-            <button class="btn btn-outline-danger btn-icon-sm" title="删除" data-delete-bank="${bank.id}" data-delete-name="${escapeHtml(bank.name)}"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-outline-danger btn-icon-sm" title="删除" aria-label="删除题库《${escapeHtml(bank.name)}》" data-delete-bank="${bank.id}" data-delete-name="${escapeHtml(bank.name)}"><i class="bi bi-trash" aria-hidden="true"></i></button>
             ` : ''}
           </td>
         </tr>`;
@@ -50,11 +50,11 @@ const _t2BanksPage = {
       <div class="content-narrow">
         <header class="page-header">
           <div class="page-header__title">
-            <i class="bi bi-collection"></i>
+            <i class="bi bi-collection" aria-hidden="true"></i>
             <h3>题库集</h3>
             <span class="subtitle">共 ${total} 个题库</span>
           </div>
-          <div class="page-header__index">
+          <div class="page-header__index" aria-label="题库索引">
             <strong>${String(total).padStart(2, '0')}</strong>
             <span>BANKS</span>
           </div>
@@ -62,15 +62,16 @@ const _t2BanksPage = {
 
         <div class="d-flex gap-2 mb-3 flex-wrap">
           <div class="input-group" style="max-width:360px">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" id="t2Search" placeholder="搜索题库名称…" value="${escapeHtml(t2SearchQuery)}">
+            <span class="input-group-text" aria-hidden="true"><i class="bi bi-search"></i></span>
+            <label for="t2Search" class="sr-only">搜索题库</label>
+            <input type="text" class="form-control" id="t2Search" placeholder="搜索题库名称…" value="${escapeHtml(t2SearchQuery)}" aria-label="搜索题库">
           </div>
           <div class="ms-auto d-flex gap-2">
             ${isAdminUser ? `
-            <button class="btn btn-danger btn-sm" id="batchDeleteBtn" onclick="t2BatchDelete()"><i class="bi bi-trash me-1"></i>批量删除</button>
+            <button class="btn btn-danger btn-sm" id="batchDeleteBtn" onclick="t2BatchDelete()"><i class="bi bi-trash me-1" aria-hidden="true"></i>批量删除</button>
             ` : ''}
-            <button class="btn btn-success btn-sm" id="batchExportBtn" onclick="t2BatchExport()"><i class="bi bi-download me-1"></i>批量导出</button>
-            <button class="btn btn-primary btn-sm" onclick="location.hash='#/t2/add'"><i class="bi bi-plus-circle me-1"></i>新增题库</button>
+            <button class="btn btn-success btn-sm" id="batchExportBtn" onclick="t2BatchExport()"><i class="bi bi-download me-1" aria-hidden="true"></i>批量导出</button>
+            <button class="btn btn-primary btn-sm" onclick="location.hash='#/t2/add'"><i class="bi bi-plus-circle me-1" aria-hidden="true"></i>新增题库</button>
           </div>
         </div>
 
@@ -132,11 +133,11 @@ const _t2BanksPage = {
       <div class="content-narrow">
         <header class="page-header">
           <div class="page-header__title">
-            <i class="bi bi-plus-circle"></i>
+            <i class="bi bi-plus-circle" aria-hidden="true"></i>
             <h3>新增题库</h3>
             <span class="subtitle">从 Excel 模板导入题目</span>
           </div>
-          <div class="page-header__index">
+          <div class="page-header__index" aria-label="新增题库">
             <strong>＋ / 02</strong>
             <span>NEW BANK</span>
           </div>

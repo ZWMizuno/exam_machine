@@ -92,16 +92,16 @@ const _t6StorePage = {
       '<div class="store-page"><div class="store-page-inner">' +
         '<header class="page-header">' +
           '<div class="page-header__title">' +
-            '<i class="bi bi-layers"></i>' +
+            '<i class="bi bi-layers" aria-hidden="true"></i>' +
             '<h3>书架</h3>' +
             '<span class="subtitle">' + totalVisible + ' 本 · ' + userCoins + ' 硬币</span>' +
           '</div>' +
-          '<div class="page-header__index">' +
+          '<div class="page-header__index" aria-label="商店位置">' +
             '<strong>STORE</strong>' +
             '<span>SKINS</span>' +
           '</div>' +
         '</header>' +
-        '<div class="store-filter-tabs">' +
+        '<div class="store-filter-tabs" role="tablist" aria-label="皮肤筛选">' +
           '<div class="tab-group">' +
             '<input type="radio" id="filter-all" name="store-filter" value="all" ' + (_t6Filter === 'all' ? 'checked' : '') + ' onchange="_t6Filter=\'all\';_t6StorePage.render(document.getElementById(\'app-content\'))">' +
             '<label for="filter-all">全部</label>' +

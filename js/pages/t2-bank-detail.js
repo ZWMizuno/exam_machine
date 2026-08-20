@@ -56,14 +56,15 @@ const _t2DetailPage = {
         </div>
         <div class="page-header__actions">
           <div class="input-group" style="width:260px">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control" id="t2DetailSearch" placeholder="搜索题目内容…" value="${escapeHtml(t2DetailSearchQuery)}">
-            <button class="btn btn-outline-secondary btn-sm" id="t2ClearSearch" style="${t2DetailSearchQuery ? 'display:inline-flex' : 'display:none'}">
-              <i class="bi bi-x"></i>
+            <span class="input-group-text" aria-hidden="true"><i class="bi bi-search"></i></span>
+            <label for="t2DetailSearch" class="sr-only">搜索题目</label>
+            <input type="text" class="form-control" id="t2DetailSearch" placeholder="搜索题目内容…" value="${escapeHtml(t2DetailSearchQuery)}" aria-label="搜索题目">
+            <button class="btn btn-outline-secondary btn-sm" id="t2ClearSearch" style="${t2DetailSearchQuery ? 'display:inline-flex' : 'display:none'}" aria-label="清除搜索">
+              <i class="bi bi-x" aria-hidden="true"></i>
             </button>
           </div>
           <button class="btn btn-secondary btn-sm" onclick="t2DetailExportWithConfirm(${bank.id}, '${escapeHtml(bank.name)}')">
-            <i class="bi bi-download"></i> 导出
+            <i class="bi bi-download" aria-hidden="true"></i> 导出
           </button>
         </div>
       </header>
@@ -78,9 +79,9 @@ const _t2DetailPage = {
           </div>
           <div class="d-flex justify-content-between align-items-center mt-3">
             <div class="d-flex align-items-center gap-2">
-              <button class="btn btn-outline-primary" id="t2DetailPrevBtn" ${t2DetailCurrentIndex === 0 ? 'disabled' : ''}><i class="bi bi-chevron-left"></i> 上一题</button>
-              <button class="btn btn-outline-primary" id="t2DetailNextBtn" ${t2DetailCurrentIndex === (t2DetailAllQuestions.length - 1) ? 'disabled' : ''}>下一题 <i class="bi bi-chevron-right"></i></button>
-              <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.05em"><i class="bi bi-keyboard me-1"></i>← →</span>
+              <button class="btn btn-outline-primary" id="t2DetailPrevBtn" ${t2DetailCurrentIndex === 0 ? 'disabled' : ''} aria-label="上一题"><i class="bi bi-chevron-left" aria-hidden="true"></i> 上一题</button>
+              <button class="btn btn-outline-primary" id="t2DetailNextBtn" ${t2DetailCurrentIndex === (t2DetailAllQuestions.length - 1) ? 'disabled' : ''} aria-label="下一题">下一题 <i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+              <span style="color:var(--ink-faint);font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.05em"><i class="bi bi-keyboard me-1" aria-hidden="true"></i>← →</span>
             </div>
           </div>
         </div>
