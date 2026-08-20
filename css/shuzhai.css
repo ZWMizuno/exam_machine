@@ -290,26 +290,29 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%);
-  border: 1.5px solid var(--gold);
+  background: linear-gradient(135deg, #3D2817 0%, #5C3A1F 100%);
+  border: 1.5px solid #8B6F47;
   border-radius: 1rem;
   padding: 3px 10px 3px 6px;
-  box-shadow: 0 2px 6px rgba(201, 146, 10, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 220, 160, 0.15);
   align-self: flex-start;
   font-family: var(--font-mono);
 }
 
 .sidebar-coin-icon {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
 
 .sidebar-coin-count {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: #8B6914;
+  color: #E8C896;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .sidebar-logout {

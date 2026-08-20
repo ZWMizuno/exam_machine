@@ -43,9 +43,26 @@ function renderNavbar() {
       </div>
       <div class="sidebar-coin-badge" id="coinDisplay">
         <svg class="sidebar-coin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#F5C23A" stroke="#C9920A" stroke-width="1.5"/>
-          <circle cx="12" cy="12" r="7" fill="#F5D76E"/>
-          <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#8B6914" font-family="serif">$</text>
+          <defs>
+            <radialGradient id="ancientCoin" cx="35%" cy="30%" r="75%">
+              <stop offset="0%" stop-color="#E8C896"/>
+              <stop offset="50%" stop-color="#B8895A"/>
+              <stop offset="100%" stop-color="#6B4A2A"/>
+            </radialGradient>
+          </defs>
+          <!-- 铜钱外圆 -->
+          <circle cx="12" cy="12" r="10.5" fill="url(#ancientCoin)" stroke="#3D2817" stroke-width="0.7"/>
+          <!-- 内郭 (装饰环) -->
+          <circle cx="12" cy="12" r="8.5" fill="none" stroke="#3D2817" stroke-width="0.4" opacity="0.55"/>
+          <!-- 方孔 (天圆地方) -->
+          <rect x="8.7" y="8.7" width="6.6" height="6.6" fill="#2A1A0A"/>
+          <!-- 四方字 (永乐通宝 风格) -->
+          <text x="5" y="8" font-size="2.6" fill="#3D2817" font-family="STSong,'SimSun',serif" font-weight="700" text-anchor="middle">考</text>
+          <text x="19" y="8" font-size="2.6" fill="#3D2817" font-family="STSong,'SimSun',serif" font-weight="700" text-anchor="middle">试</text>
+          <text x="5" y="20" font-size="2.6" fill="#3D2817" font-family="STSong,'SimSun',serif" font-weight="700" text-anchor="middle">机</text>
+          <text x="19" y="20" font-size="2.6" fill="#3D2817" font-family="STSong,'SimSun',serif" font-weight="700" text-anchor="middle">通</text>
+          <!-- 高光 -->
+          <ellipse cx="8" cy="6" rx="3" ry="1.2" fill="#FFF4DC" opacity="0.35"/>
         </svg>
         <span id="coinCount" class="sidebar-coin-count">0</span>
       </div>

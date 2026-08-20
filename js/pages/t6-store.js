@@ -60,7 +60,7 @@ const _t6StorePage = {
                   '<span class="store-price-free">已拥有</span>' :
                   (price === 0 ?
                     '<span class="store-price-free">免费</span>' :
-                    '<svg class="store-coin-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#F5C23A" stroke="#C9920A" stroke-width="1.5"/><circle cx="12" cy="12" r="7" fill="#F5D76E"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#8B6914" font-family="serif">$</text></svg><span class="store-price-value">' + price + '</span>'
+                    '<svg class="store-coin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="ac" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#E8C896"/><stop offset="50%" stop-color="#B8895A"/><stop offset="100%" stop-color="#6B4A2A"/></radialGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#ac)" stroke="#3D2817" stroke-width="0.7"/><circle cx="12" cy="12" r="8.5" fill="none" stroke="#3D2817" stroke-width="0.4" opacity="0.55"/><rect x="8.7" y="8.7" width="6.6" height="6.6" fill="#2A1A0A"/><ellipse cx="8" cy="6" rx="3" ry="1.2" fill="#FFF4DC" opacity="0.35"/></svg><span class="store-price-value">' + price + '</span>'
                   )
                 ) +
               '</div>' +
