@@ -262,15 +262,15 @@ body {
 }
 
 /* Active: NO hardcoded jade border. Use soft layered glow on the book cover itself,
-   so the highlight respects the spine's own color. */
+   so the highlight respects the spine's own color. KEEP the book size — don't expand. */
 .sidebar-spine.active::before {
-  right: 0;
+  right: 6px; /* match hover width, no expansion */
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.35),
     inset 2px 0 8px rgba(0, 0, 0, 0.25),
     /* soft jade halo: 2 stacked transparent shadows, no hard ring */
-    0 0 18px 2px rgba(19, 96, 88, 0.45),
-    0 6px 20px rgba(0, 0, 0, 0.5);
+    0 0 14px 2px rgba(19, 96, 88, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.45);
   animation: spineActive 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
@@ -284,13 +284,13 @@ body {
   to   { box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.35),
     inset 2px 0 8px rgba(0, 0, 0, 0.25),
-    0 0 18px 2px rgba(19, 96, 88, 0.45),
-    0 6px 20px rgba(0, 0, 0, 0.5);
+    0 0 14px 2px rgba(19, 96, 88, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.45);
   }
 }
 
 .sidebar-spine.active {
-  filter: brightness(1.15) drop-shadow(0 0 6px rgba(19, 96, 88, 0.25));
+  filter: brightness(1.12);
 }
 
 .sidebar-spine.active .sidebar-spine-label {
@@ -1734,18 +1734,20 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 
 /* ============================================================
    Exam session (T1) — 试卷样式
+   Alpha pattern: fixed height, leaves breathing room at bottom
    ============================================================ */
 .exam-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 16px;
-  height: calc(100vh - 56px - 48px);
+  height: 70vh; /* alpha: never fill the viewport, leave bottom space */
+  min-height: 520px;
 }
 
 .exam-sidebar {
   background: var(--paper);
   border: 1px solid var(--color-border);
-  border-radius: 4px 12px 4px 12px;
+  border-radius: 12px;
   padding: 16px;
   box-shadow: var(--shadow-paper);
   height: 100%;
@@ -1825,6 +1827,14 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  min-width: 0;
+}
+
+/* Bottom breathing room for t2/view/1: 上一题/下一题 nav not kissing viewport edge */
+.exam-main-col + .d-flex,
+.exam-layout + .d-flex {
+  margin-top: 16px;
+  margin-bottom: 32px;
 }
 
 .exam-timer-bar {
@@ -2083,9 +2093,14 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   filter: blur(4px);
   z-index: -1;
 }
-.home-tool-seal { position: relative; z-index: 0; }
-.home-tool-jade .home-tool-seal { color: var(--jade); }
-.home-tool-gold .home-tool-seal { color: var(--gold); }
+.home-tool-seal {
+  position: relative;
+  z-index: 0;
+  color: #FFF9E6; /* icon stays paper-cream on EVERY seal color */
+}
+.home-tool-jade .home-tool-seal { background: var(--jade); box-shadow: 0 2px 0 rgba(10, 60, 50, 0.6), 0 4px 10px rgba(10, 60, 50, 0.3); }
+.home-tool-gold .home-tool-seal { background: var(--gold); box-shadow: 0 2px 0 rgba(150, 100, 0, 0.6), 0 4px 10px rgba(150, 100, 0, 0.3); }
+.home-tool-ink .home-tool-seal  { background: var(--ink);  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.4); }
 
 /* Stat card: gentle tilt on hover (was plain lift) */
 .home-stat {
@@ -2299,8 +2314,8 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   top: 0;
   z-index: 5;
   background: linear-gradient(180deg, var(--paper) 80%, transparent 100%);
-  padding: 20px 24px 16px;
-  margin: -20px -24px 16px;
+  padding: 20px 24px 20px;
+  margin: -20px -24px 24px; /* more space below to clear the search input */
   border-bottom: 1px solid var(--color-border);
 }
 
