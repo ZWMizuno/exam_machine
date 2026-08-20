@@ -2,6 +2,15 @@
 
 const _homePage = {
   async render(container) {
+    try {
+      await this._render(container);
+    } catch (err) {
+      console.error('Home render failed', err);
+      container.innerHTML = `<div class="paper-card"><h6 class="paper-card-title">案头加载失败</h6><p style="font-family:var(--font-hand);color:var(--seal)">${escapeHtml(err.message || String(err))}</p></div>`;
+    }
+  },
+
+  async _render(container) {
     const user = getCurrentUser();
     const bankCount = await db.banks.count();
     const questionCount = await db.questions.count();
@@ -13,8 +22,6 @@ const _homePage = {
     const hour = now.getHours();
     const greet = hour < 6 ? '夜深了' : hour < 12 ? '早安' : hour < 14 ? '午安' : hour < 18 ? '下午好' : hour < 22 ? '晚上好' : '夜深了';
     const dateText = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-
-    const todayCount = historyCount; // simplified: show all history as "today's records" for now
 
     // Inject header actions (export/import)
     setHeaderActions(`
@@ -59,7 +66,7 @@ const _homePage = {
         </div>
 
         <!-- 工具印章 -->
-        <h6 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.1em;margin:0 0 12px;">工 · 具 · 印 · 章</h6>
+        <h6 class="home-section-title">工 · 具 · 印 · 章</h6>
         <div class="home-tools">
           <a class="home-tool home-tool-jade" href="#/t1/exam">
             <div class="home-tool-seal"><i class="bi bi-pencil-square"></i></div>

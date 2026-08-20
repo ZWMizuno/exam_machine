@@ -67,10 +67,28 @@ body {
   font-weight: 500;
   background: var(--paper);
   color: var(--ink-soft);
-  /* subtle paper texture */
+  /* subtle paper texture — multiple radial gradients to mimic fibrous rice paper */
   background-image:
     radial-gradient(ellipse at 20% 30%, rgba(217, 201, 154, 0.3) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(217, 201, 154, 0.2) 0%, transparent 50%);
+    radial-gradient(ellipse at 80% 70%, rgba(217, 201, 154, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 60% 20%, rgba(184, 137, 90, 0.06) 0%, transparent 25%),
+    radial-gradient(circle at 30% 80%, rgba(184, 137, 90, 0.05) 0%, transparent 30%);
+}
+
+/* === Global a11y: visible focus ring only for keyboard nav (WCAG 2.4.7) === */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.sidebar-spine:focus-visible {
+  outline-offset: -2px;
+  outline-color: var(--jade-light);
+}
+.btn-seal:focus-visible,
+.btn-tag:focus-visible {
+  outline-offset: 3px;
 }
 
 .app-container {
@@ -258,22 +276,24 @@ body {
   text-shadow: 0 0 4px var(--jade-light);
 }
 
-/* User area at bottom of sidebar */
+/* User area at bottom of sidebar — horizontal layout, 44x44 touch target */
 .sidebar-user {
   border-top: 1px solid rgba(255, 220, 160, 0.15);
-  padding: 12px 14px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
+  padding: 10px 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.25) 100%);
 }
 
-.sidebar-user-row {
+.sidebar-user-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
   color: #F5DEB3;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .sidebar-user-name {
@@ -284,56 +304,71 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  min-width: 0;
 }
 
 .sidebar-coin-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
   background: linear-gradient(135deg, #3D2817 0%, #5C3A1F 100%);
   border: 1.5px solid #8B6F47;
-  border-radius: 1rem;
-  padding: 3px 10px 3px 6px;
+  border-radius: 50%;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 220, 160, 0.15);
-  align-self: flex-start;
   font-family: var(--font-mono);
+  position: relative;
+  cursor: default;
 }
 
 .sidebar-coin-icon {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
 
 .sidebar-coin-count {
-  font-size: 0.95rem;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #E8C896;
+  color: #FFF9E6;
+  background: var(--seal);
+  border: 1.5px solid var(--paper);
+  border-radius: 9px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.05em;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .sidebar-logout {
+  width: 44px;
+  height: 44px;
   background: transparent;
   border: 1px solid rgba(245, 222, 179, 0.3);
-  color: rgba(245, 222, 179, 0.8);
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 0.75rem;
+  color: rgba(245, 222, 179, 0.85);
+  border-radius: 50%;
   cursor: pointer;
-  align-self: flex-start;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
 .sidebar-logout:hover {
   background: var(--seal);
   color: #FFF9E6;
   border-color: var(--seal);
+  transform: rotate(8deg);
 }
 
 .sidebar-admin-tag {
@@ -341,10 +376,11 @@ body {
   color: #FFF9E6;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.7rem;
-  padding: 2px 6px;
+  font-size: 0.6rem;
+  padding: 1px 4px;
   border-radius: 2px;
   letter-spacing: 0.05em;
+  flex-shrink: 0;
 }
 
 /* ============================================================
@@ -461,7 +497,7 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 .paper-card {
   background: var(--paper);
   border: 1px solid var(--color-border);
-  border-radius: 4px 12px 4px 12px;
+  border-radius: 3px 14px 3px 14px;
   box-shadow: var(--shadow-paper);
   padding: 20px 24px;
   margin-bottom: 18px;
@@ -469,9 +505,30 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* 卷角 (paper corner fold) — top-right corner */
+.paper-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 22px;
+  height: 22px;
+  background:
+    linear-gradient(225deg, transparent 50%, var(--paper-2) 50%, var(--paper-3) 100%);
+  border-bottom-left-radius: 6px;
+  box-shadow: -1px 1px 1px rgba(92, 70, 50, 0.12);
+  pointer-events: none;
+  transition: width 0.2s ease, height 0.2s ease;
+}
+
 .paper-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-paper-hover);
+}
+
+.paper-card:hover::after {
+  width: 28px;
+  height: 28px;
 }
 
 .paper-card.tilt-left { transform: rotate(-0.5deg); }
@@ -1012,6 +1069,128 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 .home-stat.q      .home-stat-icon { color: var(--jade-light); opacity: 0.4; }
 .home-stat.exam   .home-stat-icon { color: var(--gold); opacity: 0.5; }
 .home-stat.wrong  .home-stat-icon { color: var(--seal); opacity: 0.4; }
+
+/* === Home: 日课表 + 最近错题 (两栏) === */
+.home-recent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.home-recent-col {
+  background: var(--paper);
+  border: 1px solid var(--color-border);
+  border-radius: 3px 14px 3px 14px;
+  padding: 16px 18px 18px;
+  box-shadow: var(--shadow-paper);
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.home-recent-col:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-paper-hover);
+}
+
+.home-recent-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.1em;
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(92, 70, 50, 0.25);
+}
+
+.home-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-recent-item {
+  display: grid;
+  grid-template-columns: 24px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  color: var(--ink-soft) !important;
+  text-decoration: none !important;
+  font-size: 0.88rem;
+  transition: background 0.15s ease;
+  border-bottom: 1px dotted rgba(92, 70, 50, 0.12);
+}
+.home-recent-item:last-child { border-bottom: none; }
+.home-recent-item:hover { background: var(--paper-2); }
+
+.home-recent-mode {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-align: center;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  border-radius: 4px;
+  background: var(--paper-2);
+}
+
+.home-recent-bank {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-recent-score {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+.home-recent-date {
+  font-family: var(--font-hand);
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.home-recent-empty {
+  font-family: var(--font-hand);
+  color: var(--ink-faint);
+  font-size: 0.95rem;
+  margin: 0;
+  padding: 12px 8px;
+  text-align: center;
+  font-style: italic;
+}
+.home-recent-empty a {
+  color: var(--jade);
+  text-decoration: none;
+  font-weight: 600;
+  font-style: normal;
+  font-family: var(--font-body);
+}
+.home-recent-empty a:hover { text-decoration: underline; }
+
+.home-section-title {
+  font-family: var(--font-display);
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .home-recent { grid-template-columns: 1fr; }
+}
 
 /* Home 工具印章（快捷） */
 .home-tools {
@@ -1933,6 +2112,9 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   .sidebar-brand-title, .sidebar-brand-sub { display: none; }
   .sidebar-spine-label { font-size: 0.75rem; letter-spacing: 0.2em; }
   .sidebar-user-name { display: none; }
+  .sidebar-admin-tag { display: none; }
+  .sidebar-user { grid-template-columns: 1fr auto; padding: 8px; }
+  .sidebar-user-info { display: none; }  /* compact: only show coin + logout in narrow mode */
   .home-stats { grid-template-columns: repeat(2, 1fr); }
   .home-tools { grid-template-columns: repeat(3, 1fr); }
   .mode-grid { grid-template-columns: 1fr; }

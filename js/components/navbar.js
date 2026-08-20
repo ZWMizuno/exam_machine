@@ -23,7 +23,8 @@ function renderNavbar() {
 
   const spinesHtml = SIDEBAR_SPINES.map(s => `
     <a class="sidebar-spine" href="${s.href}" data-prefix="${s.matchPrefix}"
-       style="--spine-color:${s.spineColor};--spine-text:${s.spineText}">
+       style="--spine-color:${s.spineColor};--spine-text:${s.spineText}"
+       title="${s.label}" aria-label="${s.label}">
       <span class="sidebar-spine-label">${s.label}</span>
     </a>
   `).join('');
@@ -36,12 +37,12 @@ function renderNavbar() {
     </div>
     <ul class="sidebar-spines" id="sidebar-spines">${spinesHtml}</ul>
     <div class="sidebar-user">
-      <div class="sidebar-user-row">
-        <i class="bi bi-person-circle" style="color:#F5DEB3"></i>
+      <div class="sidebar-user-info" title="${escapeHtml(user.username)}${isAdmin ? '（管理员）' : ''}">
+        <i class="bi bi-person-circle" style="color:#F5DEB3;font-size:1.1rem"></i>
         <span class="sidebar-user-name">${escapeHtml(user.username)}</span>
         ${isAdmin ? '<span class="sidebar-admin-tag">管理员</span>' : ''}
       </div>
-      <div class="sidebar-coin-badge" id="coinDisplay">
+      <div class="sidebar-coin-badge" id="coinDisplay" title="铜钱余额" aria-label="铜钱">
         <svg class="sidebar-coin-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <radialGradient id="ancientCoin" cx="35%" cy="30%" r="75%">
@@ -50,24 +51,19 @@ function renderNavbar() {
               <stop offset="100%" stop-color="#6B4A2A"/>
             </radialGradient>
           </defs>
-          <!-- 铜钱外圆 -->
           <circle cx="12" cy="12" r="10.5" fill="url(#ancientCoin)" stroke="#3D2817" stroke-width="0.7"/>
-          <!-- 内郭 (装饰环) -->
           <circle cx="12" cy="12" r="8.5" fill="none" stroke="#3D2817" stroke-width="0.4" opacity="0.55"/>
-          <!-- 方孔 (天圆地方) -->
           <rect x="8.7" y="8.7" width="6.6" height="6.6" fill="#2A1A0A"/>
-          <!-- 四方字 (永乐通宝 风格) -->
           <text x="5" y="8" font-size="2.6" fill="#3D2817" font-family="STSong,'SimSun',serif" font-weight="700" text-anchor="middle">考</text>
           <text x="19" y="8" font-size="2.6" fill="#3D2817" font-family="STSong,'SimSun',serif" font-weight="700" text-anchor="middle">试</text>
           <text x="5" y="20" font-size="2.6" fill="#3D2817" font-family="STSong,'SimSun',serif" font-weight="700" text-anchor="middle">机</text>
           <text x="19" y="20" font-size="2.6" fill="#3D2817" font-family="STSong,'SimSun',serif" font-weight="700" text-anchor="middle">通</text>
-          <!-- 高光 -->
           <ellipse cx="8" cy="6" rx="3" ry="1.2" fill="#FFF4DC" opacity="0.35"/>
         </svg>
         <span id="coinCount" class="sidebar-coin-count">0</span>
       </div>
-      <button class="sidebar-logout" onclick="confirmLogout()" title="退出登录">
-        <i class="bi bi-box-arrow-right"></i> 退卷
+      <button class="sidebar-logout" onclick="confirmLogout()" title="退出登录" aria-label="退出登录">
+        <i class="bi bi-box-arrow-right"></i>
       </button>
     </div>
   `;
