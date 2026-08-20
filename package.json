@@ -16,5 +16,7 @@
     "url": "https://github.com/ZWMizuno/exam_machine/issues"
   },
   "homepage": "https://github.com/ZWMizuno/exam_machine#readme",
-  "dependencies": {}
+  "dependencies": {
+    "playwright": "^1.62.1"
+  }
 }

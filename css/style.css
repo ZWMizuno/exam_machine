@@ -261,6 +261,18 @@ body {
 .streak-light.lit { background: var(--color-success); border-color: var(--color-success); box-shadow: 0 0 6px rgba(28,200,138,0.5); }
 
 /* === Book Grid (T4) — 2×4, fills remaining viewport height === */
+/*
+  Layout stack (100vh total):
+    navbar      ~56px
+    breadcrumb  ~40px
+    h4 title    ~48px  (flex-shrink:0)
+    book-grid   flex:1 (remaining space)
+    pagination  ~52px  (flex-shrink:0)
+  Fixed overhead = 56+40+48+52 = 196px
+  app-content padding = 24px top + 24px bottom = 48px
+  Total overhead = 196 + 48 = 244px
+  Each row = (100vh - 212px) / 2 - half of 50px row-gap (25px)
+*/
 .book-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -319,6 +331,39 @@ body {
   box-shadow:
     0 10px 24px rgba(0,0,0,0.22),
     0 2px 6px rgba(0,0,0,0.12);
+}
+
+
+.book-skin-tag {
+  position: absolute;
+  right: 3px;
+  top: 6px;
+  z-index: 10;
+  width: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.18);
+  height: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.18);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #c8a060, #e8c870, #f5d878, #c8a060);
+  border: 1.5px solid #8b6020;
+  box-shadow:
+    0 1px 4px rgba(0,0,0,0.35),
+    inset 0 1px 3px rgba(255,230,130,0.5),
+    inset 0 -1px 3px rgba(80,40,0,0.35);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.book-skin-tag:hover {
+  box-shadow:
+    0 3px 8px rgba(0,0,0,0.4),
+    inset 0 1px 3px rgba(255,230,130,0.5),
+    inset 0 -1px 3px rgba(80,40,0,0.35);
+}
+.book-skin-tag i {
+  font-size: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.09);
+  color: #3a2010;
+  filter: drop-shadow(0 1px 1px rgba(255,220,100,0.6));
 }
 
 /* Static shelf — sibling of book-card, 1.5× book width */
@@ -408,6 +453,13 @@ body {
   max-width: 100%;
   overflow-wrap: break-word;
 }
+.book-body .book-count {
+  font-family: 'SourceHanSansOLD-ExtraLight', 'Noto Sans CJK SC', sans-serif;
+  font-weight: 300;
+  font-size: calc((100vh - 212px) / 2 * 0.8 / 1.55 * 0.08);
+  color: var(--text);
+  opacity: 0.75;
+}
 
 /* Bookmark — size derived from book width (same calc as card), left in % of book width */
 .book-bookmark {
@@ -441,6 +493,18 @@ body {
 }
 
 
+/* Body — text area */
+.book-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  z-index: 1;
+}
+
+/* Bookmark — elegant dovetail, single smooth taper to center point */
 
 /* === Buttons === */
 .btn { border-radius: var(--radius); transition: var(--transition); }
@@ -895,6 +959,10 @@ input::-webkit-strong-password-auto-fill-button {
   position: relative;
 }
 
+.store-group::before {
+  display: none;
+}
+
 .store-group-header {
   display: flex;
   align-items: center;
@@ -918,6 +986,15 @@ input::-webkit-strong-password-auto-fill-button {
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
+.store-group-price {
+  font-size: 0.8rem;
+  color: #c9920a;
+  font-weight: 600;
+  background: rgba(245, 194, 58, 0.12);
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  border: 1px solid rgba(245, 194, 58, 0.3);
+}
 
 .store-showcase-grid {
   display: grid;
@@ -1076,24 +1153,70 @@ input::-webkit-strong-password-auto-fill-button {
 }
 
 .store-coin-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
 }
 
 .store-price-value {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #6B4A2A;
+  color: #b8860b;
   line-height: 1;
-  font-family: var(--font-mono);
 }
 
 .store-price-free {
   font-size: 0.65rem;
   font-weight: 600;
   color: #2d8a5e;
+}
+
+.store-buy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: 'Georgia', serif;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.store-buy-btn.btn-buy {
+  background: linear-gradient(135deg, #F5C23A 0%, #D4A017 100%);
+  color: #3d2800;
+}
+
+.store-buy-btn.btn-buy:hover {
+  background: linear-gradient(135deg, #D4A017 0%, #B8890F 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+.store-buy-btn.btn-poor {
+  background: #e0e0e0;
+  color: #999;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.store-buy-btn.btn-owned {
+  background: linear-gradient(135deg, #e6f9f0 0%, #c8f0de 100%);
+  color: #1a7a4a;
+  cursor: default;
+  box-shadow: none;
+  border: 1px solid #2d8a5e;
+}
+
+.store-buy-btn:disabled {
+  opacity: 1 !important;
 }
 
 .store-showcase.clickable {
