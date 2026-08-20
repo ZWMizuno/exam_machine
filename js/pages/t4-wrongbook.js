@@ -97,7 +97,7 @@ const _t4WrongbookPage = {
     const books = await getDistinctWrongBanks(user.id);
 
     if (books.length === 0) {
-      container.innerHTML = `<div class="empty-state"><i class="bi bi-book"></i><p>案上空空，去考一场吧</p><a href="#/t1" class="btn-seal">去考场</a></div>`;
+      container.innerHTML = `<div class="empty-state"><i class="bi bi-book"></i><p>案上空空，去考一场吧</p><a href="#/t1" class="btn-seal">去贡院</a></div>`;
       return;
     }
 

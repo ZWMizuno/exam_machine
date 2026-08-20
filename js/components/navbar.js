@@ -4,7 +4,7 @@
 // spine-color / spine-text reference colors from the 32 book schemes (see t4-wrongbook.js).
 const SIDEBAR_SPINES = [
   { href: '#/home', label: '案头',   spineColor: '#1F1B16', spineText: '#F5DEB3', matchPrefix: '/home' },
-  { href: '#/t1',   label: '考场',   spineColor: '#136058', spineText: '#FCC96E', matchPrefix: '/t1' },
+  { href: '#/t1',   label: '贡院',   spineColor: '#136058', spineText: '#FCC96E', matchPrefix: '/t1' },
   { href: '#/t2',   label: '卷宗',   spineColor: '#B33A26', spineText: '#FFF9E6', matchPrefix: '/t2' },
   { href: '#/t3',   label: '履历',   spineColor: '#5C4632', spineText: '#FFDCA3', matchPrefix: '/t3' },
   { href: '#/t4',   label: '拾遗',   spineColor: '#052228', spineText: '#9FE7E6', matchPrefix: '/t4' },

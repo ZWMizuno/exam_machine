@@ -52,7 +52,7 @@ const _t3HistoryPage = {
         : '当前页无记录';
       const emptyIcon = total === 0 ? 'bi-clock-history' : 'bi-search';
       const emptyAction = total === 0 && !hasFilter
-        ? '<a href="#/t1" class="btn-seal">去考场</a>'
+        ? '<a href="#/t1" class="btn-seal">去贡院</a>'
         : '<button class="btn-tag" id="t3ClearFilters"><i class="bi bi-x-circle"></i> 清空筛选</button>';
 
       container.innerHTML = `

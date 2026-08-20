@@ -24,7 +24,7 @@ const _t1Page = {
     setHeaderActions('');
     container.innerHTML = `
       <div class="content-narrow" style="text-align:center;padding-top:30px">
-        <h2 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.15em;margin:0 0 8px">考 场</h2>
+        <h2 style="font-family:var(--font-display);color:var(--ink);font-weight:700;letter-spacing:0.15em;margin:0 0 8px">贡 院</h2>
         <p style="font-family:var(--font-hand);color:var(--ink-faint);font-size:1.1rem;margin:0 0 32px;letter-spacing:0.05em">
           选其一 · 闭卷 · 始
         </p>

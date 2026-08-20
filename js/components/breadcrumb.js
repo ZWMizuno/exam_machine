@@ -3,10 +3,10 @@
 // Page metadata: title + optional subtitle
 const PAGE_META = {
   '/home':       { title: '案头',     sub: '今日学课' },
-  '/t1':         { title: '考场',     sub: '考 · 练' },
-  '/t1/exam':    { title: '考场',     sub: '考试模式' },
-  '/t1/practice':{ title: '考场',     sub: '练习模式' },
-  '/t1/session': { title: '考场',     sub: '作答中' },
+  '/t1':         { title: '贡院',     sub: '考 · 练' },
+  '/t1/exam':    { title: '贡院',     sub: '考试模式' },
+  '/t1/practice':{ title: '贡院',     sub: '练习模式' },
+  '/t1/session': { title: '贡院',     sub: '作答中' },
   '/t2':         { title: '卷宗',     sub: '题库集' },
   '/t2/add':     { title: '卷宗',     sub: '新增题库' },
   '/t2/view':    { title: '卷宗',     sub: '查看题库' },
