@@ -1987,6 +1987,123 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 
 /* Streak lights */
 .streak-lights { display: flex; gap: 4px; }
+
+/* ============================================================
+   Polish — micro-interactions & entrance (impeccable)
+   ============================================================ */
+
+/* Paper-stagger entrance for home sections */
+.home-welcome, .home-stats, .home-section-title, .home-tools, .home-recent, .paper-card {
+  animation: paperIn 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.home-welcome    { animation-delay: 0.00s; }
+.home-stats      { animation-delay: 0.08s; }
+.home-recent     { animation-delay: 0.14s; }
+.home-section-title { animation-delay: 0.18s; }
+.home-tools      { animation-delay: 0.22s; }
+.paper-card      { animation-delay: 0.28s; }
+
+/* Stagger each child card inside stats / tools */
+.home-stats .home-stat { animation: paperIn 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.home-stats .home-stat:nth-child(1) { animation-delay: 0.12s; }
+.home-stats .home-stat:nth-child(2) { animation-delay: 0.18s; }
+.home-stats .home-stat:nth-child(3) { animation-delay: 0.24s; }
+.home-stats .home-stat:nth-child(4) { animation-delay: 0.30s; }
+
+.home-tools .home-tool { animation: paperIn 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.home-tools .home-tool:nth-child(1) { animation-delay: 0.24s; }
+.home-tools .home-tool:nth-child(2) { animation-delay: 0.28s; }
+.home-tools .home-tool:nth-child(3) { animation-delay: 0.32s; }
+.home-tools .home-tool:nth-child(4) { animation-delay: 0.36s; }
+.home-tools .home-tool:nth-child(5) { animation-delay: 0.40s; }
+.home-tools .home-tool:nth-child(6) { animation-delay: 0.44s; }
+
+@keyframes paperIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* Stamp-down one-time on the welcome seal 习 */
+.home-welcome-seal {
+  animation: stampDown 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+@keyframes stampDown {
+  0%   { opacity: 0; transform: rotate(6deg) scale(2.2); }
+  60%  { opacity: 1; transform: rotate(6deg) scale(0.92); }
+  80%  { transform: rotate(6deg) scale(1.04); }
+  100% { transform: rotate(6deg) scale(1); }
+}
+
+/* Tabular numbers everywhere we count (prevent layout jitter) */
+.home-stat-num, .sidebar-coin-count, .home-recent-score {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Tool seal: subtle ink-bleed on hover (more than just rotation) */
+.home-tool:hover .home-tool-seal::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 6px;
+  background: currentColor;
+  opacity: 0.06;
+  filter: blur(4px);
+  z-index: -1;
+}
+.home-tool-seal { position: relative; z-index: 0; }
+.home-tool-jade .home-tool-seal { color: var(--jade); }
+.home-tool-gold .home-tool-seal { color: var(--gold); }
+
+/* Stat card: gentle tilt on hover (was plain lift) */
+.home-stat {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.home-stat:hover {
+  transform: translateY(-3px) rotate(-0.3deg);
+  box-shadow: var(--shadow-paper-hover);
+}
+.home-stat:nth-child(even):hover { transform: translateY(-3px) rotate(0.3deg); }
+
+/* Sidebar spine: tiny "pull-out" on hover (more book-like) */
+.sidebar-spine {
+  transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.2, 1),
+              filter 0.18s ease;
+}
+.sidebar-spine:hover { transform: translateX(3px); }
+.sidebar-spine.active { transform: translateX(6px); }
+
+/* Better focus ring for icon-only buttons (logout) */
+.sidebar-logout:focus-visible,
+.sidebar-coin-badge:focus-visible {
+  outline-offset: 3px;
+  outline-color: var(--jade-light);
+}
+
+/* Welcome greeting: a subtle ink-pen underline on the username */
+.home-welcome-greeting {
+  background-image: linear-gradient(transparent 88%, var(--seal-soft) 88%, var(--seal-soft) 96%, transparent 96%);
+  background-size: 0% 100%;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  animation: inkUnderline 0.9s ease-out 0.35s forwards;
+  display: inline;
+  padding-bottom: 2px;
+}
+@keyframes inkUnderline {
+  from { background-size: 0% 100%; }
+  to   { background-size: 100% 100%; }
+}
+
+/* === Reduced motion respect === */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .home-welcome-greeting { background: none; }
+}
 .streak-light {
   width: 18px;
   height: 18px;
