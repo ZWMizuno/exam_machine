@@ -41,7 +41,7 @@ const _homePage = {
             '<a class="home-tool home-tool-jade" href="#/t1/exam"><div class="home-tool-seal"><i class="bi bi-pencil-square"></i></div><div class="home-tool-name">开考</div><div class="home-tool-sub">计时 · 评分</div></a>',
             '<a class="home-tool" href="#/t1/practice"><div class="home-tool-seal"><i class="bi bi-journal-text"></i></div><div class="home-tool-name">开练</div><div class="home-tool-sub">即时纠错</div></a>',
             '<a class="home-tool home-tool-gold" href="#/t2"><div class="home-tool-seal"><i class="bi bi-folder2-open"></i></div><div class="home-tool-name">卷宗</div><div class="home-tool-sub">题库管理</div></a>',
-            '<a class="home-tool" href="#/t4"><div class="home-tool-seal"><i class="bi bi-book"></i></div><div class="home-tool-name">错题</div><div class="home-tool-sub">扫盲复习</div></a>',
+            '<a class="home-tool" href="#/t4"><div class="home-tool-seal"><i class="bi bi-book"></i></div><div class="home-tool-name">拾遗</div><div class="home-tool-sub">扫盲复习</div></a>',
             '<a class="home-tool home-tool-gold" href="#/t3"><div class="home-tool-seal"><i class="bi bi-clock-history"></i></div><div class="home-tool-name">履历</div><div class="home-tool-sub">历史回顾</div></a>',
             '<a class="home-tool" href="#/t5"><div class="home-tool-seal"><i class="bi bi-file-earmark-text"></i></div><div class="home-tool-name">拟卷</div><div class="home-tool-sub">打印卷子</div></a>',
           '</div>',
@@ -51,7 +51,7 @@ const _homePage = {
             '<p style="margin:0;font-family:var(--font-hand);color:var(--ink-soft);font-size:1.05rem;line-height:1.7">',
               '点左栏「<strong style="color:var(--jade)">贡院</strong>」可开始一次新的考试或练习。',
               '点「<strong style="color:var(--seal)">卷宗</strong>」管理你的题库。',
-              '错题会自动收入「<strong style="color:var(--jade)">错题</strong>」书铺，扫一遍错题收获颇多。',
+              '错题会自动收入「<strong style="color:var(--jade)">贡院</strong>」书铺，扫一遍错题收获颇多。',
             '</p>',
           '</div>',
 
