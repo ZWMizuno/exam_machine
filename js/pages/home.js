@@ -136,7 +136,11 @@ const _homePage = {
 
 async function handleImportFile(input) {
   if (!input.files || !input.files[0]) return;
-  await importAllData(input.files[0]);
+  try {
+    await importAllData(input.files[0]);
+  } catch (err) {
+    showToast('导入失败：' + err.message, 'error');
+  }
   input.value = '';
 }
 

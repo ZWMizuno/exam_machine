@@ -163,6 +163,7 @@ function normalizeMultiAnswer(val) {
 
 // Export bank to standard Excel template format
 async function exportBank(bankId) {
+  try {
   const bank = await getBankById(bankId);
   if (!bank) { showToast('题库不存在', 'error'); return; }
 
@@ -215,6 +216,9 @@ async function exportBank(bankId) {
   const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   saveAs(blob, `${bank.name}.xlsx`);
   showToast('题库已导出', 'success');
+  } catch (err) {
+    showToast('导出失败：' + err.message, 'error');
+  }
 }
 
 // Batch export - multiple banks as separate files or zipped

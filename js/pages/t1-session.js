@@ -47,6 +47,19 @@ const _t1SessionPage = {
         return;
       }
       setState({ currentExam: session });
+
+      // Restore from emergency backup if found (survives refresh mid-exam)
+      const backup = localStorage.getItem('exam_machine_emergency_backup');
+      if (backup) {
+        try {
+          const parsed = JSON.parse(backup);
+          localStorage.removeItem('exam_machine_emergency_backup');
+          if (parsed.userId === session.userId && parsed.timestamp > new Date(session.startTime).getTime()) {
+            session.userAnswers = { ...session.userAnswers, ...parsed.userAnswers };
+            session.elapsedSeconds = parsed.elapsedSeconds;
+          }
+        } catch (_) {}
+      }
     }
 
     // Initialize instance state
@@ -74,8 +87,20 @@ const _t1SessionPage = {
     this.setupTimer();
     this.showQuestion();
 
-    // Prevent accidental refresh/close during active session
-    this._beforeUnload = (e) => { e.preventDefault(); e.returnValue = '重新加载站点？\n刷新会导致考试退出'; };
+    // Prevent accidental refresh/close during active session — also save emergency backup
+    this._beforeUnload = (e) => {
+      if (this._sessionState && !this._sessionState.submitted) {
+        try {
+          localStorage.setItem('exam_machine_emergency_backup', JSON.stringify({
+            userId: this._sessionState.userId,
+            userAnswers: this._sessionState.userAnswers,
+            elapsedSeconds: getElapsedSeconds(),
+            timestamp: Date.now()
+          }));
+        } catch (_) {}
+      }
+      e.preventDefault(); e.returnValue = '重新加载站点？\n刷新会导致考试退出';
+    };
     window.addEventListener('beforeunload', this._beforeUnload);
 
     // Keyboard navigation
@@ -318,8 +343,11 @@ const _t1SessionPage = {
   },
 
   async submitSession(isAutoSubmit = false) {
-    // Prevent manual submit after timer expired
-    if (!isAutoSubmit && this._examExpired) return;
+    if (this._submitting) return;
+    this._submitting = true;
+    try {
+      // Prevent manual submit after timer expired
+      if (!isAutoSubmit && this._examExpired) return;
 
     // Auto-submit from timer: skip confirmation
     if (!isAutoSubmit) {
@@ -353,7 +381,11 @@ const _t1SessionPage = {
     // Mark submitted
     this._sessionState.submitted = true;
     await saveSession(this._sessionState);
-    await deleteSessionByUser(this._sessionState.userId);
+    try {
+      await deleteSessionByUser(this._sessionState.userId);
+    } catch (err) {
+      console.error('Failed to delete session:', err);
+    }
     setState({ currentExam: null });
 
     // Show results
@@ -390,19 +422,31 @@ const _t1SessionPage = {
     const { result } = showModal('作答结果', resultsHtml, [{ text: '返回', cls: 'btn-primary' }], 'lg');
     await result;
     location.hash = '#/t1';
+    } finally {
+      this._submitting = false;
+    }
   },
 
   async endSession() {
-    const confirmed = await showConfirm('结束作答', '确定要结束吗？进度将丢失。', '确认结束', '继续作答', true);
-    if (!confirmed) return;
+    try {
+      const confirmed = await showConfirm('结束作答', '确定要结束吗？进度将丢失。', '确认结束', '继续作答', true);
+      if (!confirmed) return;
 
-    this._removeBeforeUnload();
-    sessionStorage.removeItem('exam_active');
-    stopTimer();
-    await deleteSessionByUser(this._sessionState.userId);
-    setState({ currentExam: null });
-    this._sessionState = null;
-    location.hash = '#/t1';
+      this._removeBeforeUnload();
+      sessionStorage.removeItem('exam_active');
+      stopTimer();
+      try {
+        await deleteSessionByUser(this._sessionState.userId);
+      } catch (err) {
+        console.error('Failed to delete session:', err);
+      }
+      setState({ currentExam: null });
+      this._sessionState = null;
+      location.hash = '#/t1';
+    } catch (err) {
+      console.error('endSession failed:', err);
+      showToast('结束失败', 'error');
+    }
   },
 
   // Called by router when user confirms leaving an active session
@@ -451,11 +495,11 @@ window._t1SessionPage = _t1SessionPage;
 function formatUserAnswer(ua, type) {
   if (ua === null || ua === undefined || ua === '') return '(未作答)';
   switch (type) {
-    case 'single': return ua;
-    case 'multi': return ua.split('').join(', ');
+    case 'single': return escapeHtml(ua);
+    case 'multi': return ua.split('').map(c => escapeHtml(c)).join(', ');
     case 'tf': return ua === 'true' ? '正确' : '错误';
-    case 'fill': return Array.isArray(ua) ? ua.join(', ') : ua;
-    case 'essay': return ua.length > 50 ? ua.slice(0, 50) + '...' : ua;
-    default: return String(ua);
+    case 'fill': return Array.isArray(ua) ? ua.map(v => escapeHtml(v)).join(', ') : escapeHtml(ua);
+    case 'essay': return escapeHtml(ua.length > 50 ? ua.slice(0, 50) + '...' : ua);
+    default: return escapeHtml(String(ua));
   }
 }

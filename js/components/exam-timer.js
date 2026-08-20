@@ -71,22 +71,6 @@ function getElapsedSeconds() {
   return Math.floor((Date.now() - timerStartTime) / 1000);
 }
 
-function getRemainingSeconds() {
-  return timerRemaining;
-}
-
-function renderTimerDisplay(seconds, type) {
-  const timeStr = formatTime(seconds);
-  let cssClass = 'timer-display';
-  if (type === 'exam') {
-    const total = timerDuration;
-    const ratio = seconds / total;
-    if (ratio < 0.1) cssClass += ' danger';
-    else if (ratio < 0.25) cssClass += ' warning';
-  }
-  return `<span class="${cssClass}">${timeStr}</span>`;
-}
-
 function renderTimerBar(seconds, type, instantFeedback) {
   const timeStr = formatTime(seconds);
   let progressWidth = 100;

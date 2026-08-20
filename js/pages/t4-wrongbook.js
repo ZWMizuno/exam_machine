@@ -885,10 +885,9 @@ async function t4OpenSkinPopup(btn, bankId) {
 
   _t4SkinPopupActive = popup;
 
-  // Close on outside click
-  setTimeout(() => {
-    document.addEventListener('click', t4CloseSkinPopupOutside, { once: true });
-  }, 10);
+  // Close on outside click — stop propagation so clicks inside popup don't reach document
+  popup.addEventListener('click', (e) => e.stopPropagation());
+  document.addEventListener('click', t4CloseSkinPopupOutside, { once: true });
 }
 
 function t4CloseSkinPopup() {
