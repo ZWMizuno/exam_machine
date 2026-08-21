@@ -483,17 +483,6 @@ body {
   padding: 24px 28px 32px;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  background: var(--paper-2);
-  /* 纸面纹理: 极淡的纤维 */
-  background-image:
-    radial-gradient(circle at 25% 30%, rgba(92,70,50,0.025) 0, transparent 60%),
-    radial-gradient(circle at 75% 70%, rgba(92,70,50,0.025) 0, transparent 60%);
-}
-
-/* App content body should be paper-toned, not the default white from Bootstrap */
-body {
-  background: var(--paper-2);
-  color: var(--ink);
 }
 
 #app-content::-webkit-scrollbar { width: 8px; }

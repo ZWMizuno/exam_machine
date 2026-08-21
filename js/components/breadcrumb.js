@@ -50,14 +50,10 @@ function renderBreadcrumb() {
   const lastCrumb = breadcrumb[breadcrumb.length - 1];
   const locText = lastCrumb ? lastCrumb.label : meta.sub;
 
-  // Preserve any header actions that were injected by a page's render() before
-  // updateBreadcrumb() fires `breadcrumb:changed` and rewrites this container.
-  const prevActions = container.querySelector('#pageHeaderActions')?.innerHTML || '';
-
   container.innerHTML = `
     <div class="page-header-title">${escapeHtml(meta.title)}</div>
     <span class="page-header-loc"><i class="bi bi-geo-alt-fill"></i>${escapeHtml(locText)}</span>
-    <div class="page-header-actions" id="pageHeaderActions">${prevActions}</div>
+    <div class="page-header-actions" id="pageHeaderActions"></div>
   `;
 }
 
