@@ -766,37 +766,18 @@ const _t4WrongbookPage = {
     if (!isResult) {
       const type = wq.type;
       if (type === 'single' || type === 'tf') {
-        area.querySelectorAll('.q-option').forEach(item => {
-          const onSelect = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            area.querySelectorAll('.q-option').forEach(el => el.classList.remove('selected'));
+        area.querySelectorAll('.option-item, .q-option').forEach(item => {
+          item.addEventListener('click', () => {
+            area.querySelectorAll('.option-item, .q-option').forEach(el => el.classList.remove('selected'));
             item.classList.add('selected');
             // Auto-submit for single/tf
             t4SubmitAnswer();
-          };
-          item.addEventListener('click', onSelect);
-          item.addEventListener('mousedown', (e) => e.stopPropagation());
-          // Make clickable: role + tabindex for keyboard a11y
-          item.setAttribute('role', 'button');
-          item.setAttribute('tabindex', '0');
-          item.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(e); }
           });
         });
       } else if (type === 'multi') {
-        area.querySelectorAll('.q-option').forEach(item => {
-          const onToggle = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+        area.querySelectorAll('.option-item, .q-option').forEach(item => {
+          item.addEventListener('click', () => {
             item.classList.toggle('selected');
-          };
-          item.addEventListener('click', onToggle);
-          item.addEventListener('mousedown', (e) => e.stopPropagation());
-          item.setAttribute('role', 'button');
-          item.setAttribute('tabindex', '0');
-          item.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(e); }
           });
         });
       }
