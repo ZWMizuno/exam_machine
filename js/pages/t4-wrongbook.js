@@ -613,34 +613,23 @@ const _t4WrongbookPage = {
   async renderReviewUI(container, bankId) {
     const engine = t4ReviewEngine;
     const totalRemaining = engine.group.length + engine.pool.length;
-    const bank = await getBankById(bankId);
-    const bankName = bank ? bank.name : '题库';
-
-    // 古风 header — 复用 bank-cover 印章 + 卷册 chip
-    setHeaderActions(`
-      <a href="#/t4/${bankId}" class="btn-tag" style="text-decoration:none"><i class="bi bi-arrow-left"></i> 返错题本</a>
-    `);
 
     container.innerHTML = `
-      <div class="t4-review-shell">
-        <!-- 卷册页头 -->
-        <div class="t4-review-header">
-          <div class="t4-review-stamp" aria-hidden="true">扫</div>
-          <div class="t4-review-header-text">
-            <div class="t4-review-eyebrow">错  题  录  ·  扫  盲</div>
-            <h2 class="t4-review-title">《${escapeHtml(bankName)}》扫盲</h2>
-            <p class="t4-review-meta" id="t4ReviewCount">剩 <strong>${totalRemaining}</strong> 道 · 已清 <strong>${engine.cleared}</strong> 道</p>
-          </div>
-          <div class="t4-review-status" id="t4StatusBar">
-            <span class="t4-review-jade-pill" title="已清除"><i class="bi bi-check2-circle"></i> ${engine.cleared}</span>
-            <span class="t4-review-paper-pill" title="剩余"><i class="bi bi-hourglass-split"></i> ${totalRemaining}</span>
-          </div>
-        </div>
+      <h4 class="mb-3">
+        <a href="#/t4/${bankId}" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
+        错题扫盲
+      </h4>
 
-        <!-- 答题区 -->
-        <div id="t4ReviewArea" class="t4-review-area"></div>
+      <div class="d-flex align-items-center gap-3 mb-3" id="t4StatusBar">
+        <span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>已清除 ${engine.cleared} 题</span>
+        <span class="badge bg-secondary fs-6"><i class="bi bi-hourglass-split me-1"></i>剩余 ${totalRemaining} 题</span>
       </div>
-    `;
+
+      <div id="t4ReviewArea"></div>
+
+      <div class="d-flex justify-content-between mt-3">
+        <a href="#/t4/${bankId}" class="btn btn-outline-danger"><i class="bi bi-box-arrow-left me-1"></i>退出扫盲</a>
+      </div>`;
 
     this.renderCurrentQuestion();
   },
@@ -651,14 +640,10 @@ const _t4WrongbookPage = {
     if (!engine) return;
     const totalRemaining = engine.group.length + engine.pool.length;
     const el = document.getElementById('t4StatusBar');
-    const countEl = document.getElementById('t4ReviewCount');
     if (el) {
       el.innerHTML = `
-        <span class="t4-review-jade-pill" title="已清除"><i class="bi bi-check2-circle"></i> ${engine.cleared}</span>
-        <span class="t4-review-paper-pill" title="剩余"><i class="bi bi-hourglass-split"></i> ${totalRemaining}</span>`;
-    }
-    if (countEl) {
-      countEl.innerHTML = `剩 <strong>${totalRemaining}</strong> 道 · 已清 <strong>${engine.cleared}</strong> 道`;
+        <span class="badge bg-success fs-6"><i class="bi bi-check-circle me-1"></i>已清除 ${engine.cleared} 题</span>
+        <span class="badge bg-secondary fs-6"><i class="bi bi-hourglass-split me-1"></i>剩余 ${totalRemaining} 题</span>`;
     }
   },
 
@@ -667,22 +652,19 @@ const _t4WrongbookPage = {
     const area = document.getElementById('t4ReviewArea');
     if (!area) return;
 
-    const bankId = (location.hash.match(/#\/t4\/(\d+)/) || [])[1];
-
-    // Check if all done — 完结朱批
+    // Check if all done
     if (!engine || engine.group.length === 0) {
-      const cleared = engine ? engine.cleared : 0;
-      area.innerHTML = `
-        <div class="t4-review-done">
-          <div class="t4-review-done-stamp" aria-hidden="true">毕</div>
-          <h3 class="t4-review-done-title">扫盲毕 · 案清如水</h3>
-          <p class="t4-review-done-meta">共清 <strong>${cleared}</strong> 道错题，再接再厉。</p>
-          <a href="#/t4/${bankId}" class="btn-seal btn-seal-jade"><i class="bi bi-arrow-left me-1"></i>返错题本</a>
-        </div>`;
+      area.innerHTML = `<div class="text-center py-5">
+        <i class="bi bi-emoji-smile fs-1 text-success"></i>
+        <h5 class="mt-2">扫盲完成！</h5>
+        <p class="text-muted">共清除了 ${engine ? engine.cleared : 0} 道错题</p>
+        <a href="#/t4/${location.hash.split('/')[2]}" class="btn btn-primary">返回错题本</a>
+      </div>`;
+      // Update status bar to show final result
       const statusEl = document.getElementById('t4StatusBar');
-      const countEl = document.getElementById('t4ReviewCount');
-      if (statusEl) statusEl.innerHTML = `<span class="t4-review-gold-pill" title="完成"><i class="bi bi-trophy"></i> ${cleared}</span>`;
-      if (countEl) countEl.innerHTML = `毕 · 共清 <strong>${cleared}</strong> 道`;
+      if (statusEl) {
+        statusEl.innerHTML = `<span class="badge bg-success fs-6"><i class="bi bi-trophy me-1"></i>共清除 ${engine ? engine.cleared : 0} 题</span>`;
+      }
       return;
     }
 
@@ -698,84 +680,66 @@ const _t4WrongbookPage = {
       const isCorrect = engine._lastCorrect;
       const correctAnswer = wq.answer;
 
-      // 朱批/玉批 反馈
-      const verdictHtml = isCorrect
-        ? `<div class="t4-review-verdict t4-review-verdict-jade"><span class="t4-review-verdict-mark">✓</span> 答得妙 · 玉珠闪</div>`
-        : `<div class="t4-review-verdict t4-review-verdict-seal"><span class="t4-review-verdict-mark">✗</span> 再来过 · 案未清</div>`;
+      // Build result display
+      answerHtml += `<div class="alert ${isCorrect ? 'alert-success' : 'alert-danger'} py-2 text-center">${isCorrect ? '<i class="bi bi-check-circle me-1"></i>回答正确！' : '<i class="bi bi-x-circle me-1"></i>回答错误'}</div>`;
 
-      let correctHtml = '';
       if (!isCorrect) {
-        const correctText = formatAnswerForRead(wq);
-        correctHtml = `<div class="t4-review-correct-line">
-          <span class="t4-review-correct-mark">答</span>
-          <span class="t4-review-correct-text">${escapeHtml(correctText)}</span>
-        </div>`;
+        answerHtml += `<div class="p-2 rounded mb-2" style="background:#e6f9f3;color:#0d6b3c;"><strong>正确答案：</strong>${formatCorrectAnswer(correctAnswer, type)}</div>`;
       }
 
-      answerHtml = `${verdictHtml}${correctHtml}${this.renderReviewAnswerInput(wq, idx, true, isCorrect, correctAnswer)}`;
+      // Show selected options (read-only)
+      answerHtml += this.renderReviewAnswerInput(wq, idx, true, isCorrect, correctAnswer);
 
-      answerHtml += `<div class="t4-review-next-row">
-        <button class="t4-review-skip" onclick="t4SkipQuestion(${idx})" title="暂时跳过此题"><i class="bi bi-skip-forward"></i> 暂搁</button>
-        <button class="btn-seal btn-seal-jade t4-review-next" onclick="t4NextQuestion()">下一题 <i class="bi bi-arrow-right ms-1"></i></button>
+      answerHtml += `<div class="text-center mt-3">
+        <button class="btn btn-primary btn-lg" onclick="t4NextQuestion()">下一题 <i class="bi bi-arrow-right"></i></button>
       </div>`;
     } else {
       // Interactive answer input
-      answerHtml = this.renderReviewAnswerInput(wq, idx, false, false, null);
+      answerHtml += this.renderReviewAnswerInput(wq, idx, false, false, null);
       // Only show submit button for multi/fill/essay; single/tf auto-submit on click
       if (type === 'multi' || type === 'fill' || type === 'essay') {
-        answerHtml += `<div class="t4-review-next-row">
-          <button class="t4-review-skip" onclick="t4SkipQuestion(${idx})" title="暂时跳过此题"><i class="bi bi-skip-forward"></i> 暂搁</button>
-          <button class="btn-seal btn-seal-jade t4-review-next" id="t4SubmitBtn" onclick="t4SubmitAnswer()"><i class="bi bi-check2 me-1"></i>落笔</button>
-        </div>`;
-      } else {
-        // single/tf auto-submit, no buttons — but keep skip
-        answerHtml += `<div class="t4-review-next-row">
-          <button class="t4-review-skip" onclick="t4SkipQuestion(${idx})" title="暂时跳过此题"><i class="bi bi-skip-forward"></i> 暂搁</button>
-          <span class="t4-review-hint"><i class="bi bi-magic"></i> 选中即落笔</span>
+        answerHtml += `<div class="text-center mt-3">
+          <button class="btn btn-success btn-lg" id="t4SubmitBtn" onclick="t4SubmitAnswer()"><i class="bi bi-check-lg me-1"></i>提交答案</button>
         </div>`;
       }
     }
 
-    // 三盏朱印 (错次/连胜/跳关)
-    const wrongSeal = wq.wrongCount >= 1 ? 'lit' : '';
-    const streak1 = wq.correctStreak >= 1 ? 'lit' : '';
-    const streak2 = wq.correctStreak >= 2 ? 'lit' : '';
-    const streak3 = wq.correctStreak >= 3 ? 'lit' : '';
-
     area.innerHTML = `
-      <article class="q-page t4-review-card ${isResult ? (engine._lastCorrect ? 't4-review-card-jade' : 't4-review-card-seal') : ''}">
-        <header class="q-page-head">
-          <div class="t4-review-stamps">
-            <span class="t4-review-stamp-chip">${typeBadge(wq.type)}</span>
-            <span class="t4-review-stamp-chip t4-review-stamp-wrong" title="累计答错 ${wq.wrongCount} 次">错 ${wq.wrongCount} 次</span>
+      <div class="card">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              ${typeBadge(wq.type)}
+              <span class="badge bg-warning text-dark ms-1">错误 ${wq.wrongCount} 次</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <div class="streak-lights">
+                <div class="streak-light ${wq.correctStreak >= 1 ? 'lit' : ''}"></div>
+                <div class="streak-light ${wq.correctStreak >= 2 ? 'lit' : ''}"></div>
+                <div class="streak-light ${wq.correctStreak >= 3 ? 'lit' : ''}"></div>
+              </div>
+              <button class="btn btn-sm btn-outline-primary btn-icon" onclick="t4SkipQuestion(${idx})" title="暂时跳过"><i class="bi bi-skip-forward"></i></button>
+            </div>
           </div>
-          <div class="t4-review-streak" title="连答对 3 次即清出">
-            <span class="t4-review-streak-label">连答对</span>
-            <span class="streak-light ${streak1}"></span>
-            <span class="streak-light ${streak2}"></span>
-            <span class="streak-light ${streak3}"></span>
-          </div>
-        </header>
-
-        <div class="q-content t4-review-content">${escapeHtml(wq.content)}</div>
-
-        ${answerHtml}
-      </article>`;
+          <div class="question-content mb-3 fs-5">${escapeHtml(wq.content)}</div>
+          ${answerHtml}
+        </div>
+      </div>`;
 
     // Bind option selection handlers (only in answer mode, not result mode)
     if (!isResult) {
       const type = wq.type;
       if (type === 'single' || type === 'tf') {
-        area.querySelectorAll('.option-item, .q-option').forEach(item => {
+        area.querySelectorAll('.option-item').forEach(item => {
           item.addEventListener('click', () => {
-            area.querySelectorAll('.option-item, .q-option').forEach(el => el.classList.remove('selected'));
+            area.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
             item.classList.add('selected');
             // Auto-submit for single/tf
             t4SubmitAnswer();
           });
         });
       } else if (type === 'multi') {
-        area.querySelectorAll('.option-item, .q-option').forEach(item => {
+        area.querySelectorAll('.option-item').forEach(item => {
           item.addEventListener('click', () => {
             item.classList.toggle('selected');
           });
@@ -787,50 +751,47 @@ const _t4WrongbookPage = {
   renderReviewAnswerInput(wq, idx, readOnly, isCorrect, correctAnswer) {
     const type = wq.type;
     switch (type) {
-      case 'single':
+      case 'single': {
+        const opts = wq.options || {};
+        const labels = Object.keys(opts).sort();
+        return `<ul class="options-list">${labels.map(l => {
+          let itemClass = 'option-item';
+          if (readOnly) itemClass += ' no-hover';
+          if (readOnly && l === correctAnswer) itemClass += ' correct';
+          if (readOnly && isCorrect === false) {
+            const ua = t4ReviewEngine._lastUserAnswer;
+            if (l === ua) itemClass += ' wrong';
+          }
+          return `<li class="${itemClass}" data-value="${l}"><span class="option-letter">${l}</span><span>${escapeHtml(opts[l])}</span></li>`;
+        }).join('')}</ul>`;
+      }
       case 'tf': {
-        let opts, labels;
-        if (type === 'tf') {
-          opts = { 'true': '正确', 'false': '错误' };
-          labels = ['true', 'false'];
-        } else {
-          opts = wq.options || {};
-          labels = Object.keys(opts).sort();
-        }
-        const ua = t4ReviewEngine._lastUserAnswer;
-        return `<div class="q-options">${labels.map(l => {
-          let cls = 'q-option';
-          if (readOnly) cls += ' q-option-readonly';
-          if (readOnly && String(l) === String(correctAnswer)) cls += ' q-option-correct';
-          if (readOnly && isCorrect === false && String(l) === String(ua)) cls += ' q-option-wrong';
-          const letter = type === 'tf' ? (l === 'true' ? '✓' : '✗') : l;
-          const mark = (readOnly && String(l) === String(correctAnswer))
-            ? '<span class="q-option-mark" title="正确答案"><i class="bi bi-check2"></i> 答</span>' : '';
-          return `<div class="${cls}" data-value="${escapeHtml(String(l))}">
-            <span class="q-option-letter">${escapeHtml(letter)}</span>
-            <span class="q-option-text">${escapeHtml(opts[l] || '')}</span>
-            ${mark}
-          </div>`;
-        }).join('')}</div>`;
+        // Show ✓/✗ instead of true/false; fixed order: 正确 first, 错误 second
+        const opts = { 'true': '正确', 'false': '错误' };
+        const labels = ['true', 'false'];
+        return `<ul class="options-list">${labels.map(l => {
+          let itemClass = 'option-item';
+          if (readOnly) itemClass += ' no-hover';
+          if (readOnly && l === correctAnswer) itemClass += ' correct';
+          if (readOnly && isCorrect === false) {
+            const ua = t4ReviewEngine._lastUserAnswer;
+            if (l === ua) itemClass += ' wrong';
+          }
+          return `<li class="${itemClass}" data-value="${l}"><span class="option-letter">${l === 'true' ? '✓' : '✗'}</span><span>${opts[l]}</span></li>`;
+        }).join('')}</ul>`;
       }
       case 'multi': {
         const opts = wq.options || {};
         const labels = Object.keys(opts).sort();
         const uaSet = new Set(t4ReviewEngine._lastUserAnswer || '');
         const caSet = new Set(correctAnswer || '');
-        return `<div class="q-options">${labels.map(l => {
-          let cls = 'q-option';
-          if (readOnly) cls += ' q-option-readonly';
-          if (readOnly && caSet.has(l)) cls += ' q-option-correct';
-          if (readOnly && !isCorrect && uaSet.has(l) && !caSet.has(l)) cls += ' q-option-wrong';
-          const mark = (readOnly && caSet.has(l))
-            ? '<span class="q-option-mark" title="正确答案"><i class="bi bi-check2"></i> 答</span>' : '';
-          return `<div class="${cls}" data-value="${escapeHtml(l)}">
-            <span class="q-option-letter">${escapeHtml(l)}</span>
-            <span class="q-option-text">${escapeHtml(opts[l] || '')}</span>
-            ${mark}
-          </div>`;
-        }).join('')}</div>`;
+        return `<ul class="options-list" data-multi="true">${labels.map(l => {
+          let itemClass = 'option-item';
+          if (readOnly) itemClass += ' no-hover';
+          if (readOnly && caSet.has(l)) itemClass += ' correct';
+          if (readOnly && !isCorrect && uaSet.has(l) && !caSet.has(l)) itemClass += ' wrong';
+          return `<li class="${itemClass}" data-value="${l}"><span class="option-letter">${l}</span><span>${escapeHtml(opts[l])}</span></li>`;
+        }).join('')}</ul>`;
       }
       case 'fill': {
         const blanks = wq.answer || [];
@@ -838,26 +799,23 @@ const _t4WrongbookPage = {
         return blanks.map((ans, i) => {
           if (readOnly) {
             const correct = isCorrect === true || (Array.isArray(isCorrect) && isCorrect[i]);
-            return `<div class="t4-review-fill-row ${correct ? 'is-correct' : 'is-wrong'}">
-              <span class="t4-review-fill-num">第 ${i+1} 空</span>
-              <span class="t4-review-fill-ua">你的答案：${escapeHtml(ua[i] || '(未作答)')}</span>
-              ${!correct ? `<span class="t4-review-fill-correct">答 · ${escapeHtml(ans)}</span>` : ''}
+            const cls = correct ? 'text-success' : 'text-danger';
+            return `<div class="mb-1"><label class="form-label small fw-bold">第${i+1}空</label>
+              <div><span class="${cls}">你的答案：${escapeHtml(ua[i] || '(未作答)')}</span></div>
+              ${!correct ? `<div class="text-success">正确答案：${escapeHtml(ans)}</div>` : ''}
             </div>`;
           }
-          return `<div class="t4-review-fill-row">
-            <span class="t4-review-fill-num">第 ${i+1} 空</span>
-            <input type="text" class="form-control form-control-sm t4-review-fill-input review-input" data-blank="${i}" placeholder="写下答案">
-          </div>`;
+          return `<div class="mb-1"><label class="form-label small fw-bold">第${i+1}空</label><input type="text" class="form-control form-control-sm review-input" data-blank="${i}"></div>`;
         }).join('');
       }
       case 'essay': {
         if (readOnly) {
-          return `<div class="t4-review-essay ${isCorrect ? 'is-correct' : 'is-wrong'}">
-            <div class="t4-review-essay-row"><span class="t4-review-fill-num">你的答</span><span>${escapeHtml(t4ReviewEngine._lastUserAnswer || '(未作答)')}</span></div>
-            ${!isCorrect ? `<div class="t4-review-essay-row"><span class="t4-review-fill-num">参考答</span><span>${escapeHtml(correctAnswer)}</span></div>` : ''}
+          return `<div>
+            <div><span class="${isCorrect ? 'text-success' : 'text-danger'}">你的答案：${escapeHtml(t4ReviewEngine._lastUserAnswer || '(未作答)')}</span></div>
+            ${!isCorrect ? `<div class="text-success">正确答案：${escapeHtml(correctAnswer)}</div>` : ''}
           </div>`;
         }
-        return `<textarea class="form-control t4-review-essay-input review-input" rows="4" placeholder="笔落惊风雨..."></textarea>`;
+        return `<textarea class="form-control review-input" rows="3" placeholder="请输入答案"></textarea>`;
       }
       default:
         return '';
