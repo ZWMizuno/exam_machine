@@ -39,7 +39,7 @@ function renderQuestion(question, options = {}) {
   }
 
   if (instantFeedback && userAnswer !== null && userAnswer !== undefined && userAnswer !== '') {
-    const isCorrect = checkAnswerStatic(userAnswer, question.answer, type);
+    const isCorrect = checkAnswerDisplay(userAnswer, question.answer, type);
     if (isCorrect) {
       feedbackHtml = `<div class="instant-feedback correct"><i class="bi bi-check-circle me-1"></i>回答正确！</div>`;
     } else {
@@ -230,6 +230,10 @@ function getUserAnswer(questionEl) {
 }
 
 // Check answer for instant feedback display
+function checkAnswerDisplay(userAnswer, correctAnswer, type) {
+  return checkAnswerStatic(userAnswer, correctAnswer, type);
+}
+
 function checkAnswerStatic(userAnswer, correctAnswer, type) {
   switch (type) {
     case 'single':
@@ -260,15 +264,15 @@ function checkAnswerStatic(userAnswer, correctAnswer, type) {
 function formatCorrectAnswer(answer, type) {
   switch (type) {
     case 'single':
-      return answer ? `<strong>${escapeHtml(answer)}</strong>` : '';
+      return answer ? `<strong>${answer}</strong>` : '';
     case 'multi':
-      return answer ? answer.split('').map(c => escapeHtml(c)).join(', ') : '';
+      return answer ? answer.split('').join(', ') : '';
     case 'tf':
       return answer === 'true' ? '正确 (True)' : '错误 (False)';
     case 'fill':
-      return Array.isArray(answer) ? answer.map((a, i) => `空${i+1}: ${escapeHtml(a)}`).join('；') : escapeHtml(answer || '');
+      return Array.isArray(answer) ? answer.map((a, i) => `空${i+1}: ${a}`).join('；') : (answer || '');
     case 'essay':
-      return escapeHtml(answer || '');
+      return answer || '';
     default:
       return '';
   }

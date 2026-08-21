@@ -17,6 +17,8 @@ db.version(2).stores({
 async function createUser(user) { return await db.users.add(user); }
 async function getUserByUsername(username) { return await db.users.where('username').equals(username).first(); }
 async function getUserById(id) { return await db.users.get(id); }
+async function getAllUsers() { return await db.users.toArray(); }
+
 // === Banks ===
 async function createBank(bank) { return await db.banks.add(bank); }
 async function getAllBanks() {
@@ -24,6 +26,7 @@ async function getAllBanks() {
   return banks.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 }
 async function getBankById(id) { return await db.banks.get(id); }
+async function updateBank(id, changes) { return await db.banks.update(id, changes); }
 async function deleteBank(id) {
   await db.transaction('rw', db.banks, db.questions, db.examModes, db.wrongQuestions, db.history, async () => {
     await db.banks.delete(id);
@@ -46,11 +49,21 @@ async function getQuestionsByBank(bankId, type) {
   if (type) collection = collection.and(q => q.type === type);
   return await collection.sortBy('number');
 }
+async function getQuestionById(id) { return await db.questions.get(id); }
+async function updateQuestion(id, changes) { return await db.questions.update(id, changes); }
+async function deleteQuestion(id) { return await db.questions.delete(id); }
+async function deleteQuestionsByBank(bankId) { return await db.questions.where('bankId').equals(bankId).delete(); }
 async function getQuestionCounts(bankId) {
   const questions = await db.questions.where('bankId').equals(bankId).toArray();
   const counts = { single: 0, multi: 0, tf: 0, fill: 0, essay: 0 };
   for (const q of questions) { if (counts[q.type] !== undefined) counts[q.type]++; }
   return counts;
+}
+async function getQuestionsByBankAndType(bankId, type, offset, limit) {
+  let collection = db.questions.where('[bankId+type]').equals([bankId, type]);
+  const total = await collection.count();
+  const items = await collection.offset(offset).limit(limit).sortBy('number');
+  return { items, total };
 }
 async function searchQuestions(bankId, query) {
   let collection = db.questions.where('bankId').equals(bankId);
@@ -68,21 +81,12 @@ async function deleteExamMode(id) { return await db.examModes.delete(id); }
 
 // === Exam Sessions ===
 async function saveSession(session) {
-  return await db.transaction('rw', db.examSessions, async () => {
-    const existing = await db.examSessions.where('userId').equals(session.userId).first();
-    if (existing) { session.id = existing.id; return await db.examSessions.put(session); }
-    return await db.examSessions.add(session);
-  });
+  const existing = await db.examSessions.where('userId').equals(session.userId).first();
+  if (existing) { session.id = existing.id; return await db.examSessions.put(session); }
+  return await db.examSessions.add(session);
 }
 async function getSessionByUser(userId) { return await db.examSessions.where('userId').equals(userId).first(); }
-async function deleteSessionByUser(userId) {
-  try {
-    return await db.examSessions.where('userId').equals(userId).delete();
-  } catch (err) {
-    console.error('deleteSessionByUser failed:', err);
-    throw err;
-  }
-}
+async function deleteSessionByUser(userId) { return await db.examSessions.where('userId').equals(userId).delete(); }
 
 // === History ===
 async function addHistory(record) { return await db.history.add(record); }
@@ -143,14 +147,11 @@ async function allocColorIndex(userId) {
 
 // === Default Admin ===
 async function seedDefaultAdmin() {
-  try {
-    const count = await db.users.count();
-    if (count === 0) {
-      const passwordHash = await hashPassword("admin123");
-      await createUser({ username: "admin", passwordHash, role: "admin", createdAt: new Date().toISOString(), coins: 0 });
-    }
-  } catch (err) {
-    console.error('seedDefaultAdmin failed:', err);
+  const count = await db.users.count();
+  if (count === 0) {
+    const passwordHash = await hashPassword("admin123");
+    await createUser({ username: "admin", passwordHash, role: "admin", createdAt: new Date().toISOString(), coins: 0 });
+    console.log("Default admin created: admin/admin123");
   }
 }
 
@@ -179,6 +180,11 @@ async function getUserOwnedSkins(userId) {
   const skins = await db.userSkins.where('userId').equals(userId).toArray();
   return skins.map(s => s.colorIndex);
 }
+async function hasUserSkin(userId, colorIndex) {
+  const existing = await db.userSkins.where({ userId, colorIndex }).first();
+  return !!existing;
+}
+
 // === Persistent Storage Request ===
 async function requestPersistentStorage() {
   if (navigator.storage && navigator.storage.persist) {
@@ -220,10 +226,7 @@ async function importAllData(file) {
     reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target.result);
-        // Sanitize: always import users as 'user' role, never 'admin'
-        data.users = data.users.map(u => ({ ...u, role: 'user' }));
-        // Strict validation before touching the database
-        if (!data.version || !Array.isArray(data.users) || !Array.isArray(data.banks)) {
+        if (!data.version || !data.users) {
           showToast('文件格式无效', 'error');
           reject(new Error('Invalid format'));
           return;

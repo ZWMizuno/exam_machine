@@ -101,6 +101,12 @@ async function showConfirm(title, message, confirmText = '确认', cancelText = 
   return idx === 1;
 }
 
+async function showAlert(title, message) {
+  const buttons = [{ text: '确定', cls: 'btn-primary' }];
+  const { result } = showModal(title, `<p>${escapeHtml(message)}</p>`, buttons);
+  await result;
+}
+
 // --- Formatters ---
 function formatTime(totalSeconds) {
   const mins = Math.floor(totalSeconds / 60);

@@ -14,6 +14,10 @@ let _sidebarInitialized = false;
 let _sidebarCallbacks = null;
 
 function initSidebar(questionsByType, userAnswers, type, instantFeedback) {
+  // Reset both flags so a new session always gets a full render
+  _sidebarInitialized = false;
+  sidebarState._initialized = false;
+
   // Only set initial collapsed state once — don't override user's manual collapses
   if (sidebarState._initialized) return;
 
@@ -41,7 +45,6 @@ function initSidebar(questionsByType, userAnswers, type, instantFeedback) {
     collapsedTypes,
     _initialized: true
   };
-  _sidebarInitialized = true;
 }
 
 function _buildCircleHtml(q, userAnswers, instantFeedback, currentQuestionId) {
