@@ -131,7 +131,7 @@ const _t2BanksPage = {
           <div id="t2FileList"></div>
           <div class="mt-3 d-flex gap-2">
             <button class="btn-seal btn-seal-jade" id="t2ImportBtn" disabled style="opacity:0.5;pointer-events:none" onclick="t2DoImport()"><i class="bi bi-check-circle me-1"></i>确认录入</button>
-            <a href="#/t2" class="btn-tag" style="text-decoration:none">返</a>
+            <a href="#/t2" class="btn-tag" style="text-decoration:none">返回</a>
           </div>
         </div>
       </div>`;
@@ -184,8 +184,12 @@ const _t2BanksPage = {
       e.preventDefault();
       dropZone.classList.remove('drag-over');
       addFiles(e.dataTransfer.files);
+      fileInput.value = ''; // reset so re-selecting the same file fires change again
     });
-    fileInput.addEventListener('change', () => addFiles(fileInput.files));
+    fileInput.addEventListener('change', () => {
+      addFiles(fileInput.files);
+      fileInput.value = ''; // reset so the next click on "选文件" always re-opens the picker
+    });
 
     window._t2ImportFiles = () => importFiles;
   },
