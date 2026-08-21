@@ -2153,6 +2153,17 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
 .q-option:active {
   transform: translateX(2px) scale(0.99);
 }
+.q-option-readonly {
+  cursor: default;
+  user-select: text;
+}
+.q-option-readonly:hover {
+  background: var(--paper-2);
+  border-color: var(--color-border);
+  transform: none;
+  box-shadow: none;
+}
+.q-option-readonly:active { transform: none; }
 .q-option.selected {
   background: var(--jade-bg);
   border-color: var(--jade);

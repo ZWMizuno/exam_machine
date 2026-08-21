@@ -451,7 +451,7 @@ function renderReadOnlyOptions(q) {
       : [answer.toUpperCase()].filter(Boolean);
     const items = labels.map(label => {
       const isCorrect = correctLabels.includes(label.toUpperCase());
-      const cls = isCorrect ? 'q-option q-option-correct' : 'q-option';
+      const cls = isCorrect ? 'q-option q-option-readonly q-option-correct' : 'q-option q-option-readonly';
       return `
         <div class="${cls}">
           <span class="q-option-letter">${escapeHtml(label)}</span>
@@ -472,7 +472,7 @@ function renderReadOnlyOptions(q) {
   const items = opts.map((opt, i) => {
     const idx = i + 1;
     const isCorrect = correctIdxs.includes(idx);
-    const cls = isCorrect ? 'q-option q-option-correct' : 'q-option';
+    const cls = isCorrect ? 'q-option q-option-readonly q-option-correct' : 'q-option q-option-readonly';
     return `
       <div class="${cls}">
         <span class="q-option-letter">${toLetter(idx)}</span>

@@ -938,10 +938,10 @@ async function t4SubmitAnswer() {
   // Get user answer from the DOM
   let userAnswer;
   if (type === 'single' || type === 'tf') {
-    const sel = area.querySelector('.option-item.selected');
+    const sel = area.querySelector('.q-option.selected, .option-item.selected');
     userAnswer = sel ? sel.dataset.value : null;
   } else if (type === 'multi') {
-    const sels = area.querySelectorAll('.option-item.selected');
+    const sels = area.querySelectorAll('.q-option.selected, .option-item.selected');
     userAnswer = Array.from(sels).map(el => el.dataset.value).sort().join('');
   } else if (type === 'fill') {
     userAnswer = Array.from(area.querySelectorAll('.review-input')).map(inp => inp.value);
