@@ -85,8 +85,8 @@ const _t2DetailPage = {
           <div class="bank-cover-eyebrow">卷  册  ·  卷  二</div>
           <h2 class="bank-cover-title">《${escapeHtml(bank.name)}》</h2>
           <p class="bank-cover-meta">共 <strong>${totalQ}</strong> 题 · 静阅卷 · ${counts.essay ? '含问答' : '客观题'}</p>
+          <div class="bank-cover-stats">${statChips.join('')}</div>
         </div>
-        <div class="bank-cover-stats">${statChips.join('')}</div>
       </div>
 
       <div class="t2-search-row">
@@ -393,30 +393,18 @@ function formatAnswerForRead(q) {
   if (!q) return '';
   const a = q.answer;
   if (a == null || a === '') return '';
-  const opts = q.options;
-  const isObj = opts && !Array.isArray(opts) && typeof opts === 'object';
-  const isArr = Array.isArray(opts);
   if (q.type === 'single') {
-    if (isObj) {
-      const key = String(a).trim().toUpperCase();
-      if (opts[key] != null) return `${key}. ${opts[key]}`;
-      return String(a);
-    }
-    const arr = isArr ? opts : [];
+    // single answer: option index
+    const opts = Array.isArray(q.options) ? q.options : [];
     const i = parseInt(a);
-    if (!isNaN(i) && arr[i - 1]) return `${toLetter(i)}. ${arr[i - 1]}`;
+    if (!isNaN(i) && opts[i - 1]) return `${toLetter(i)}. ${opts[i - 1]}`;
     return String(a);
   }
   if (q.type === 'multi') {
-    if (isObj) {
-      const labels = String(a).split(/[,，\s]+/).filter(Boolean).map(s => s.trim().toUpperCase());
-      if (!labels.length) return String(a);
-      return labels.map(l => `${l}. ${opts[l] || ''}`).join('　');
-    }
-    const arr = isArr ? opts : [];
+    const opts = Array.isArray(q.options) ? q.options : [];
     const idxs = String(a).split(/[,，\s]+/).filter(Boolean).map(s => parseInt(s)).filter(n => !isNaN(n));
     if (!idxs.length) return String(a);
-    return idxs.map(i => `${toLetter(i)}. ${arr[i - 1] || ''}`).join('　');
+    return idxs.map(i => `${toLetter(i)}. ${opts[i - 1] || ''}`).join('　');
   }
   if (q.type === 'tf') {
     return /^t|对|正确|true|√/i.test(String(a)) ? '对 · 正确' : '错 · 错误';
@@ -436,40 +424,15 @@ function toLetter(n) {
 }
 
 // === Read-only options renderer ===
-// Supports both Array (["A", "B", "C"]) and Object ({A: "...", B: "...", C: "..."}) shapes
 function renderReadOnlyOptions(q) {
-  if (!q || !q.options) return '';
-  const opts = q.options;
-  // Object form: { A: '...', B: '...', ... }
-  if (!Array.isArray(opts) && typeof opts === 'object') {
-    const labels = Object.keys(opts);
-    if (!labels.length) return '';
-    const answer = String(q.answer || '').trim();
-    const isMulti = q.type === 'multi';
-    const correctLabels = isMulti
-      ? answer.split(/[,，\s]+/).map(s => s.trim().toUpperCase()).filter(Boolean)
-      : [answer.toUpperCase()].filter(Boolean);
-    const items = labels.map(label => {
-      const isCorrect = correctLabels.includes(label.toUpperCase());
-      const cls = isCorrect ? 'q-option q-option-correct' : 'q-option';
-      return `
-        <div class="${cls}">
-          <span class="q-option-letter">${escapeHtml(label)}</span>
-          <span class="q-option-text">${escapeHtml(opts[label] || '')}</span>
-          ${isCorrect ? '<span class="q-option-mark" title="正确答案"><i class="bi bi-check2"></i> 答</span>' : ''}
-        </div>
-      `;
-    }).join('');
-    return `<div class="q-options">${items}</div>`;
-  }
-  // Array form: [text0, text1, ...] with numeric answers
-  if (!Array.isArray(opts) || !opts.length) return '';
+  if (!q || !Array.isArray(q.options) || !q.options.length) return '';
   const answer = String(q.answer || '').trim();
   const isMulti = q.type === 'multi';
   const correctIdxs = isMulti
     ? answer.split(/[,，\s]+/).map(s => parseInt(s)).filter(n => !isNaN(n))
     : [parseInt(answer)].filter(n => !isNaN(n));
-  const items = opts.map((opt, i) => {
+
+  const items = q.options.map((opt, i) => {
     const idx = i + 1;
     const isCorrect = correctIdxs.includes(idx);
     const cls = isCorrect ? 'q-option q-option-correct' : 'q-option';
@@ -481,6 +444,7 @@ function renderReadOnlyOptions(q) {
       </div>
     `;
   }).join('');
+
   return `<div class="q-options">${items}</div>`;
 }
 

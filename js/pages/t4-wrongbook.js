@@ -208,8 +208,8 @@ const _t4WrongbookPage = {
           <div class="bank-cover-eyebrow">错  题  录  ·  拾  遗</div>
           <h2 class="bank-cover-title">《${escapeHtml(bank.name)}》错题本</h2>
           <p class="bank-cover-meta" id="t4DetailCount">共 <strong>${wrongQs.length}</strong> 道 · 累计错 <strong>${totalWrong}</strong> 次</p>
+          <div class="bank-cover-stats">${statChips.join('')}</div>
         </div>
-        <div class="bank-cover-stats">${statChips.join('')}</div>
       </div>
 
       <div class="t2-search-row">
