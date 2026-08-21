@@ -1060,9 +1060,9 @@ async function t4OpenSkinPopup(btn, bankId) {
       </div>`;
   }
 
-  // Build popup and position it
+  // Build popup — measure OFFSCREEN so opening position never flashes at 0,0
   const popup = document.createElement('div');
-  popup.className = 'skin-popup popup-right';
+  popup.className = 'skin-popup popup-bottom measuring';
   popup.id = 't4SkinPopup';
   popup.innerHTML = `
     <div class="skin-popup-title">
@@ -1071,38 +1071,64 @@ async function t4OpenSkinPopup(btn, bankId) {
     </div>
     <div class="skin-popup-grid">${itemsHtml}</div>
   `;
+  // Park it offscreen (still measurable, not visible to user)
+  popup.style.left = '-9999px';
+  popup.style.top = '-9999px';
+  document.body.appendChild(popup);
+  const popupRect = popup.getBoundingClientRect();
 
-  // Insert after the button's wrapper
-  btn.closest('.book-wrapper').appendChild(popup);
+  // Now compute final position relative to the button (in viewport)
+  const btnRect = btn.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const margin = 8;
 
-  // Position adaptation: if popup goes off right edge, flip to left
-  requestAnimationFrame(() => {
-    const rect = popup.getBoundingClientRect();
-    const vw = window.innerWidth;
-    if (rect.right > vw - 10) {
-      popup.classList.remove('popup-right');
-      popup.classList.add('popup-left');
-    }
-    popup.classList.add('show');
-  });
+  let left = btnRect.left + btnRect.width / 2 - popupRect.width / 2;
+  let top = btnRect.bottom + 12;
+
+  if (left < margin) left = margin;
+  if (left + popupRect.width > vw - margin) left = vw - popupRect.width - margin;
+
+  if (top + popupRect.height > vh - margin) {
+    top = btnRect.top - popupRect.height - 12;
+    popup.classList.remove('popup-bottom');
+    popup.classList.add('popup-top');
+  }
+
+  popup.classList.remove('measuring');
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+  // Two rAFs: one to apply position, one to fade in (avoids any paint flash)
+  requestAnimationFrame(() => requestAnimationFrame(() => popup.classList.add('show')));
 
   _t4SkinPopupActive = popup;
 
-  // Close on outside click
+  // Close on outside click / Escape — delay > 0 so the opening click doesn't
+  // immediately re-trigger close via the same event bubble
   setTimeout(() => {
-    document.addEventListener('click', t4CloseSkinPopupOutside, { once: true });
-  }, 10);
+    document.addEventListener('click', t4CloseSkinPopupOutside);
+    document.addEventListener('keydown', t4CloseSkinPopupEsc);
+  }, 50);
+}
+
+function t4CloseSkinPopupEsc(e) {
+  if (e.key === 'Escape') {
+    t4CloseSkinPopup();
+    document.removeEventListener('keydown', t4CloseSkinPopupEsc);
+  }
 }
 
 function t4CloseSkinPopup() {
   const popup = document.getElementById('t4SkinPopup');
   if (popup) popup.remove();
+  document.removeEventListener('click', t4CloseSkinPopupOutside);
+  document.removeEventListener('keydown', t4CloseSkinPopupEsc);
   _t4SkinPopupActive = null;
 }
 
 function t4CloseSkinPopupOutside(e) {
   const popup = document.getElementById('t4SkinPopup');
-  if (popup && !popup.contains(e.target) && !e.target.closest('.skin-select-btn')) {
+  if (popup && !popup.contains(e.target) && !e.target.closest('.book-label')) {
     t4CloseSkinPopup();
   }
 }
@@ -1110,9 +1136,31 @@ function t4CloseSkinPopupOutside(e) {
 async function t4ApplySkin(bankId, colorIndex) {
   const user = getCurrentUser();
   await setBankSkin(user.id, bankId, colorIndex);
-  t4CloseSkinPopup();
-  showToast('皮肤已更换', 'success');
 
-  // Refresh the grid to show new colors
-  _t4WrongbookPage.renderGrid(document.getElementById('app-content'));
+  // Fade out popup (no DOM thrash) then remove after transition
+  const popup = document.getElementById('t4SkinPopup');
+  if (popup) {
+    popup.classList.remove('show');
+    popup.addEventListener('transitionend', () => {
+      if (popup.parentNode) popup.remove();
+    }, { once: true });
+  }
+  document.removeEventListener('click', t4CloseSkinPopupOutside);
+  document.removeEventListener('keydown', t4CloseSkinPopupEsc);
+
+  // Update book card + label IN PLACE (no grid re-render → no jitter)
+  const scheme = BOOK_COLOR_SCHEMES[colorIndex];
+  const wrapper = document.querySelector(`.book-wrapper a[href$="${bankId}"], .book-wrapper[onclick*="${bankId}"]`);
+  // Find by data: simpler — locate the book-card whose href contains the bankId
+  const bookCard = document.querySelector(`.book-card[onclick*="'#/t4/${bankId}'"]`);
+  if (bookCard) {
+    bookCard.style.setProperty('--book', scheme.book);
+    bookCard.style.setProperty('--text', scheme.text);
+    bookCard.style.setProperty('--bookmark', scheme.bookmark);
+  }
+  // Update book-logo char (in case scheme name's first char changed)
+  const labelSpan = bookCard ? bookCard.parentElement.querySelector('.book-label span') : null;
+  if (labelSpan) labelSpan.textContent = scheme.name;
+
+  showToast('皮肤已更换', 'success');
 }

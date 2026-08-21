@@ -1350,7 +1350,7 @@ input::-webkit-strong-password-auto-fill-button {
 
 /* Popup panel */
 .skin-popup {
-  position: absolute;
+  position: fixed;
   z-index: 1000;
   background: linear-gradient(180deg, #FFF8F0 0%, #FFF3E6 100%);
   border: 1px solid rgba(139,69,19,0.2);
@@ -1361,14 +1361,20 @@ input::-webkit-strong-password-auto-fill-button {
   max-width: 400px;
   opacity: 0;
   visibility: hidden;
-  transform: scale(0.95);
-  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  transition: opacity 0.18s ease, visibility 0.18s;
+  /* no transform/scale: avoid jitter when popup is repositioned */
+}
+
+/* Off-screen measurement phase: keep it measurable but never visible */
+.skin-popup.measuring {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none;
 }
 
 .skin-popup.show {
   opacity: 1;
   visibility: visible;
-  transform: scale(1);
 }
 
 /* Popup arrow pointing to button */
@@ -1381,10 +1387,19 @@ input::-webkit-strong-password-auto-fill-button {
   transform: rotate(45deg);
 }
 
-/* Position helpers */
-.skin-popup.popup-right::before { right: -6px; top: 50%; margin-top: -6px; box-shadow: 2px 2px 4px rgba(0,0,0,0.05); }
-.skin-popup.popup-left::before { left: -6px; top: 50%; margin-top: -6px; box-shadow: -2px 2px 4px rgba(0,0,0,0.05); }
-.skin-popup.popup-bottom::before { bottom: -6px; left: 50%; margin-left: -6px; box-shadow: 2px 2px 4px rgba(0,0,0,0.05); }
+/* Position helpers — pop from bottom (under button) is the default */
+.skin-popup.popup-bottom::before {
+  top: -6px;
+  left: 50%;
+  margin-left: -6px;
+  box-shadow: -2px -2px 4px rgba(0,0,0,0.05);
+}
+.skin-popup.popup-top::before {
+  bottom: -6px;
+  left: 50%;
+  margin-left: -6px;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+}
 
 .skin-popup-title {
   font-weight: 700;
