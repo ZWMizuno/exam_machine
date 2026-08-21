@@ -2139,9 +2139,30 @@ body:has(#app-content.login-page-content) #app-navbar { display: none; }
   color: var(--ink);
   font-size: clamp(0.86rem, 0.3vw + 0.7rem, 0.95rem);
   line-height: 1.55;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   position: relative;
+  cursor: pointer;
+  user-select: none;
 }
+.q-option:hover {
+  background: var(--paper);
+  border-color: var(--ink-soft);
+  transform: translateX(2px);
+  box-shadow: -2px 0 0 var(--jade);
+}
+.q-option:active {
+  transform: translateX(2px) scale(0.99);
+}
+.q-option.selected {
+  background: var(--jade-bg);
+  border-color: var(--jade);
+}
+.q-option.selected .q-option-letter {
+  background: var(--jade);
+  color: #FFF9E6;
+  border-color: var(--jade);
+}
+.q-option.selected .q-option-text { color: var(--ink); font-weight: 600; }
 .q-option-letter {
   width: clamp(22px, 1.6vw + 0.5rem, 26px);
   height: clamp(22px, 1.6vw + 0.5rem, 26px);
