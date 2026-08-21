@@ -48,7 +48,7 @@ html, body { height: 100vh; overflow: hidden; margin: 0; }
 body {
   font-family: 'Source Han Sans SC', 'Microsoft YaHei', sans-serif;
   font-weight: 500;
-  background: var(--color-bg);
+  /* The shuzhai design system overrides this with paper-2 in shuzhai.css */
   color: var(--color-text);
 }
 
